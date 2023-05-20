@@ -33,8 +33,7 @@ const SignUp = ({navigation}) => {
     if (passwordInputRef.current) {
       passwordInputRef.current.focus();
     }
-    else{console.log('No password')
-  }
+   
   }, []);
   const focusRePasswordInput = useCallback(() => {
     if (repasswordInputRef.current) {
@@ -42,34 +41,11 @@ const SignUp = ({navigation}) => {
     }
   }, []);
 
-  function validateNigerianPhoneNumber(phoneNumber) {
-    const phoneUtil =u ;
-    try {
-      const numberProto = phoneUtil.parse(phoneNumber, "NG");
-      return phoneUtil.isValidNumber(numberProto);
-    } catch (e) {
-      console.log(e)
-      return false;
-    }
   
-};
- const handleSubmit = async (event) => {
-  event.preventDefault()
  
-
- validateNigerianPhoneNumber('08144299862');
-
-// if (isNigerianPhoneNumberValid) {
-// // The phone number is valid
-// } else {
-// // The phone number is not valid
-// }
-
- }
     
   const validate = () => {
     let errors = [];
-    let vali=''
     if (!userName) {
       errors.push('Name is required');
     } else if (userName.length < 3) {
@@ -91,6 +67,7 @@ const SignUp = ({navigation}) => {
     else{
       errors.push('Error in Phone number')
     }
+
     
     return errors;
   };
@@ -128,6 +105,39 @@ const SignUp = ({navigation}) => {
 <Image  source={require('../assets/icon.png')}
            alt='headerImage' h='130' w='130' resizeMode="contain"/>
            </Box>
+
+           <HStack w='80%' pt={2}  space={30} alignSelf='center' pl={1} justifyContent='space-between'>
+           <FormControl isRequired >
+    
+    <Input mb="2.5" rounded="md" type ='number' w='100%' _input={{bg:'#fff'}} _focus={{
+  
+  borderColor: "#158e73",
+  borderWidth: "1px"
+}}  
+
+placeholder="Name"
+returnKeyType="next"
+keyboardType="default"
+onSubmitEditing={focusNumberInput}
+onChangeText={ (text) => setUserName(text)}
+/>
+  </FormControl>
+  <FormControl isRequired >
+    
+    <Input mb="2.5" rounded="md" w='100%' type ='number' _input={{bg:'#fff'}} _focus={{
+  
+  borderColor: "#158e73",
+  borderWidth: "1px"
+}}  
+
+placeholder="Last Name"
+returnKeyType="next"
+keyboardType="default"
+onSubmitEditing={focusNumberInput}
+onChangeText={ (text) => setUserName(text)}
+/>
+  </FormControl>
+  </HStack>
            <FormControl isRequired >
     
         <Input mb="2.5" rounded="md" type ='number' _input={{bg:'#fff'}} _focus={{
@@ -136,7 +146,7 @@ const SignUp = ({navigation}) => {
       borderWidth: "1px"
     }}  
     
-    placeholder="Name"
+    placeholder="Email"
     returnKeyType="next"
    keyboardType="default"
    onSubmitEditing={focusNumberInput}
