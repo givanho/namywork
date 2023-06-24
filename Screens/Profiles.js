@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Actionsheet } from "native-base";
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
+// This is the User's Profile DashBoard
 
 const Profiles = ({navigation}) => {
   const {createUser, googleSignIn, user, logout} = UserAuth();
@@ -16,13 +17,16 @@ const [displayName, setDisplayName] = useState('')
 const [images, setImages] = useState("https://img.icons8.com/?size=1x&id=23265&format=png")
 const [image, setImage] = useState('')
 const [handlePermissions, setHandlePermissions] = useState(null)
+
+
+// ActionSheet State manager
 const {
   isOpen,
   onOpen,
   onClose
 } = useDisclose();
 
-
+// Hook for Profile picture Permission on device
 useEffect(() => {
   (async() =>{
     const galleryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -32,6 +36,8 @@ useEffect(() => {
   
 }, []);
 
+
+// Funvtion that handle user image Picker (profile pic)
 const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -76,6 +82,7 @@ useEffect(() => {
       bg="#eff3f6"
       borderRadius={100} > 
       
+      {/* Dynamically render image if user has uploaded a pic or display default avatar  */}
     {image ? (<Image  alignItems="center" justifyContent="center" alignSelf='center' alignContent='center'
       source= {{uri: image}}
       alt="User Aatar"
@@ -87,6 +94,7 @@ useEffect(() => {
       borderColor= "#eee"
       borderWidth= "3px"
     />):
+    // Avatar when there is no profile pic
        (
         <View w='80%'
     h='80%' alignItems="center" justifyContent="center" alignSelf='center' alignContent='center' m='auto'>
@@ -105,10 +113,9 @@ useEffect(() => {
   )
   }  
     
-    
-    
-    
     </Box>
+
+    {/* Camera Icon by the Picture border to handle onPress to select picture */}
     <TouchableOpacity  onPress={pickImage} >
     <Image 
      source={require("../assets/camera.png")}
@@ -123,7 +130,7 @@ useEffect(() => {
     </TouchableOpacity>
     </HStack>
     
-
+{/* User Details Including Name and other data */}
     <Box w= "95%" h="100%" bg='#fff'
                   borderTopRightRadius={40}
                   borderTopLeftRadius={40} 
