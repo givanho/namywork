@@ -1,22 +1,28 @@
 import React,{useState, useEffect, } from 'react'
-import { StyleSheet,TouchableOpacity, TouchableNativeFeedbackBase} from 'react-native';
-import { Box, Image,View, Center ,Text, Input,useDisclose, ScrollView,AspectRatio, Stack,VStack,HStack,Flex, Spacer,
-   Button,Heading} from 'native-base'
-import { UserAuth } from '../context'
+import { StyleSheet,TouchableOpacity,Alert, Share, } from 'react-native';
+import { Box,  Center ,Text, useDisclose, ScrollView,VStack,HStack,
+   Button,Heading,Avatar} from 'native-base'
+import { UserAuth } from '../context/context'
 import * as ImagePicker from 'expo-image-picker' 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Actionsheet } from "native-base";
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableWithoutFeedback } from 'react-native';
+import ReusableModal from '../Components/Modal';
+import { collection, query, where ,doc, setDoc, onSnapshot, } from "firebase/firestore";
 
+import { db } from '../firebase';
+import { storage } from '../firebase';
+import { ref , uploadBytesResumable, getDownloadURL,} from 'firebase/storage';
 // This is the User's Profile DashBoard
 
 const Profiles = ({navigation}) => {
-  const {createUser, googleSignIn, user, logout} = UserAuth();
-const [email, setEmail] = useState('')
-const [displayName, setDisplayName] = useState('')
-const [images, setImages] = useState("https://img.icons8.com/?size=1x&id=23265&format=png")
+const { user, logout} = UserAuth();
 const [image, setImage] = useState('')
 const [handlePermissions, setHandlePermissions] = useState(null)
+const [uploading, setUploading] = useState(false);
+const [transferred, setTransferred] = useState(0);
+const [data, setData] = useState(null)
+const [userImgSrc, setUserImgSrc] = useState(require("../assets/avatar.png"));
 
 
 // ActionSheet State manager
@@ -26,6 +32,52 @@ const {
   onClose
 } = useDisclose();
 
+const [modalVisible, setModalVisible] = useState(false);
+
+const openModal = () => {
+  setModalVisible(true);
+};
+
+const closeModal = () => {
+  setModalVisible(false);
+};
+
+
+//imageupload function
+const imageUpload = async (uri, email) =>{
+
+
+  try {
+    const imageRef = ref(storage, 'profile_pics/' + user.email + '/DP');
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    const uploadTask = uploadBytesResumable(imageRef, blob);
+
+    uploadTask.on(
+      'state_changed',
+      // ... progress and error handlers ...
+      () => {
+        // Handle successful uploads on complete
+        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+       getDownloadURL(uploadTask.snapshot.ref)
+      .then(async (downloadURL) => {
+        setImage(downloadURL)
+          console.log('File available at', downloadURL);
+
+         await setDoc(doc(db, 'users', user.uid), {
+                 userImg: downloadURL, // Use downloadURL here
+                 }, { merge: true });
+        });
+      }
+      
+    );
+
+    // ... rest of your code ...
+  } catch (error) {
+    console.error('Error uploading image: ', error);
+  }
+};
 // Hook for Profile picture Permission on device
 useEffect(() => {
   (async() =>{
@@ -37,101 +89,111 @@ useEffect(() => {
 }, []);
 
 
-// Funvtion that handle user image Picker (profile pic)
+// Function that handle user image Picker (profile pic)
 const pickImage = async () => {
     // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+      aspect: [4, 4],
+      quality:0.5
     });
 
-    console.log(result);
-
+    
+     console.log('user clicked council')
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const email = user.email; // Replace with actual user ID
+   await   imageUpload(result.assets[0].uri, email);
+      // setImage(imageUri);
     }
   };
  if (handlePermissions === false){
   return <Text>No access to gallery</Text>
  }
-useEffect(() => {
-    if (user && user.photoURL) {
-      setEmail(user.email);
-      setDisplayName(user.displayName)
-      setImages(user.photoURL)
-      
-    } else {
-      console.log('No users found');
-    }
-  }, [user]);
 
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+       
+        title:'Handwork',
+        message:
+          'Hello, I have posted my skill on Handwork. Do you need my services? http://google.com/handwork',
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      Alert.alert(error.message);
+    }
+  };
   
-    
+  //We're using the useEffect hook to set up the real-time listener when the component mounts
+  useEffect(() => {
+    if (user) {
+      //When the query snapshot changes (new data is added), 
+     // the onSnapshot callback function is called. If the query snapshot is not empty, 
+     // we update the state with the data from the first document in the snapshot.
+
+      const q = query(collection(db, 'users'), where('userID', '==', user.uid));
+
+      //The unsubscribe function returned by onSnapshot is used to 
+      //remove the listener when the component unmounts, preventing memory leaks.
+
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          console.log(doc.id, ' => ', doc.data());
+          setData(doc.data());
+
+          if (doc.data().userImg) {
+            setUserImgSrc({ uri: doc.data().userImg });
+          }
+        }
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [image]);
     
   return (
-    <ScrollView h='100%' bg="#eff3f6"  showsVerticalScrollIndicator={false} pt={10} >
-    <VStack  alignItems='center' alignContent='center'pb={40} >
+    <ScrollView  bg="#eff3f6"  showsVerticalScrollIndicator={false} pt={5} >
+    <VStack  alignItems='center' alignContent='center'pb={40}  >
       <HStack >
-      <Box h="150"
+       <Box h="150"
       w="150" 
-      borderColor= "rgba(21, 142, 115, 0.5)"
+      borderColor= "#158e73"
       borderBottomWidth='8px'
       borderTopWidth='1px'
       bg="#eff3f6"
-      borderRadius={100} > 
+      borderRadius={100} >  
       
       {/* Dynamically render image if user has uploaded a pic or display default avatar  */}
-    {image ? (<Image  alignItems="center" justifyContent="center" alignSelf='center' alignContent='center'
-      source= {{uri: image}}
-      alt="User Aatar"
-      flex={1}
-      w='140'
-      h='120'
-      resizeMode="cover"
-      borderRadius={100}
-      borderColor= "#eee"
-      borderWidth= "3px"
-    />):
-    // Avatar when there is no profile pic
-       (
-        <View w='80%'
-    h='80%' alignItems="center" justifyContent="center" alignSelf='center' alignContent='center' m='auto'>
-      <Image  alignItems="center" justifyContent="center" alignSelf='center' alignContent='center'
-    source= {require('../assets/avatar.png')}
-    alt="User Aatar"
-    flex={1}
-    w='140'
-    h='120'
-    resizeMode="contain"
-    borderRadius={100}
-    borderColor= "#eee"
-    borderWidth= "3px"
-  />
-  </View>
-  )
-  }  
-    
-    </Box>
+      <Avatar bg="gray.100" alignSelf="center" justifyContent='center'mt={2} size="2xl"
+      source={userImgSrc}
+      >
+          avatar
+        </Avatar>
+     </Box> 
 
     {/* Camera Icon by the Picture border to handle onPress to select picture */}
     <TouchableOpacity  onPress={pickImage} >
-    <Image 
-     source={require("../assets/camera.png")}
-     alt="Upload Image"
-     h="50"
-     w="50"
-     ml={-6}
-     mt={77}
-     position='absolute'
-    opacity={0.6}
-     resizeMode="contain"/>
+      <Box position='absolute' mt={78} ml={-6}>
+    <Ionicons 
+          name='camera' type= "Octicons"size={35} color='#158e73' opacity={0.9} />
+    </Box>
     </TouchableOpacity>
     </HStack>
     
 {/* User Details Including Name and other data */}
-    <Box w= "95%" h="100%" bg='#fff'
+    <Box w= "100%" h="100%" bg='#fff'
                   borderTopRightRadius={40}
                   borderTopLeftRadius={40} 
                   mt={-50}
@@ -142,12 +204,11 @@ useEffect(() => {
                <VStack  alignItems='center' alignContent='center'>
                 
     {/* <Text> {email}</Text> */}
- 
 
     {/* <Text>{displayName}</Text> */}
-    <Heading mt={50} fontSize='xl'> Rejoice P</Heading>
-    <Text> Make-Up artiste</Text>
-    <Text> Port Harcourt, Rivers State</Text>
+    <Heading mt={58} fontSize='2xl' fontWeight='600' color='text.700' fontFamily='heading' > {data ? data.firstname +' ' +data.surname : null}</Heading>
+    <Text fontSize='lg' fontWeight='200' fontFamily='mono' color='text.600'> {data ? data.skill || <Text fontSize='xs'>Add your Handwork</Text>:<Text fontSize='xs'>Add a Skill</Text> }</Text>
+    <Text fontSize='sm' fontWeight='200' fontFamily='mono' color='text.600'>{data ? data.location || <Text fontSize='xs'>Add your Location</Text>:<Text fontSize='xs'>Add a Skill</Text> }</Text>
  
       
       <HStack space={13.5} 
@@ -155,9 +216,10 @@ useEffect(() => {
        w="90%"
        >
         <Button 
+        
                   rounded="md"
                  onPress={() => {
-                  navigation.navigate('MyAd');
+                  navigation.navigate('MyAds');
                   }}
                   mt="5"
                   w="40%"
@@ -165,117 +227,148 @@ useEffect(() => {
                   bg="#158e73"
                   colorScheme="emerald"
                 >
+                  
                   My Ads
+                 
                 </Button>
                 <Button
                   rounded="md"
-                  onPress={pickImage}
+                  //props are passed to edit screen
+                  onPress={() => 
+                    navigation.navigate('Edit' , { value: data.number, locationRoute: data.location, aboutRoute:data.about, skillRoute:data.skill })
+                    }
                   mt="5"
                   w="40%"
                   bg="#158e73"
                   colorScheme="emerald"
                 >
+                   
                   Edit Profile
+                  
                 </Button>
       </HStack>
-      <Box h='45' w='90%' borderColor= "#eff3f6"
-      borderTopWidth= "2px"  mt={2}>
-        <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
+      <Box h='45' w='90%'  mt={6} >
+        <HStack  space={6}>
+          <Box bg="#eff3f6" size={10} borderRadius={9}
           alignItems="center" justifyContent="center" >
           <Ionicons 
-          name='md-heart' type= "Octicons"size={22} color='#158e73' opacity={0.9}/>
+          name='md-heart' type= "Octicons"size={22} color='#158e73' />
           </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>Favorited</Heading>
-           <Heading fontSize='md' color='text.600' ml='auto'  mb='auto'mt='auto'>500</Heading>
+           <Heading fontSize='sm'fontWeight='600' fontFamily='heading' color='text.600'   mb='auto'mt='auto'>Favorited</Heading>
+           <Heading fontSize='md'fontFamily='heading' color='text.600' ml='auto'  mb='auto'mt='auto'>500</Heading>
         </HStack>
       </Box>
       
-      <Box h='45' w='90%' borderColor= "#F8FAFB"
+      <Box h='45' w='90%' 
       mt={1}>
-       <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
+       <HStack space={6}>
+          <Box bg="#eff3f6" size={10} borderRadius={9}
           alignItems="center" justifyContent="center" >
           <Ionicons 
-          name='call-sharp' type= "Octicons"size={22} color='#158e73' opacity={0.9}/>
+          name='call-sharp' type= "Octicons"size={22} color='#158e73'/>
           </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>08144299862</Heading>
+           <Heading fontSize='sm' color='text.600'  fontWeight='600' fontFamily='heading' 
+            mb='auto'mt='auto'>{data ? data.number : null}</Heading>
+        </HStack>
+      </Box>
+      
+      <Box h='45' w='90%' 
+       mt={1}>
+      <HStack space={6}>
+          <Box bg="#eff3f6" size={10} borderRadius={9}
+          alignItems="center" justifyContent="center" >
+          <Ionicons 
+          name='ios-happy' type="Octicons" size={22} color='#158e73' />
+          </Box>
+           <Heading fontSize='sm' color='text.600' fontWeight='600' fontFamily='heading'   mb='auto'mt='auto'>Feedbacks</Heading>
+           <Heading fontSize='md' color='text.600' ml='auto'fontFamily='heading'  mb='auto'mt='auto'>500</Heading>
         </HStack>
       </Box>
       
       <Box h='45' w='90%' borderColor= "#eee"
        mt={1}>
-      <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
+        <TouchableWithoutFeedback onPress={openModal} >
+      <HStack  space={6}>
+          <Box bg="#eff3f6" size={10} borderRadius={9}
           alignItems="center" justifyContent="center" >
           <Ionicons 
-          name='ios-happy' type="Octicons" size={22} color='#158e73' opacity={0.9}/>
+          name='ios-person' type="Octicons" size={22} color='#158e73' />
           </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>Feedbacks</Heading>
-           <Heading fontSize='md' color='text.600' ml='auto'  mb='auto'mt='auto'>500</Heading>
-        </HStack>
-      </Box>
-      
-      <Box h='45' w='90%' borderColor= "#eee"
-       mt={1}>
-        <TouchableWithoutFeedback onPress={onOpen} style={styles.rotatedBox}>
-      <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
-          alignItems="center" justifyContent="center" >
-          <Ionicons 
-          name='ios-person' type="Octicons" size={22} color='#158e73' opacity={0.9}/>
-          </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>About Me</Heading>
+           <Heading fontSize='sm' color='text.600'fontFamily='heading'   mb='auto'mt='auto'>About Me</Heading>
            
            <Box mb='auto'mt='auto'  ml='auto'>
            <Ionicons 
-          name='ios-chevron-forward' type="Octicons" size={18} opacity={0.9} color='#475569'
+          name='ios-chevron-forward' type="Octicons" size={22}  color='#475569'
             />
           </Box>
         </HStack>
         </TouchableWithoutFeedback>
       </Box>
       
-      <Box h='45' w='90%' borderColor= "#eff3f6"
-      borderTopWidth= "2px" mt={1}>
-    <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
+      <Box h='45' w='90%'  mt={1} >
+        <TouchableWithoutFeedback onPress={onShare} style={styles.rotatedBox}>
+    <HStack space={6}>
+          <Box bg="#eff3f6" size={10} borderRadius={9}
           alignItems="center" justifyContent="center" >
           <Ionicons 
-          name='ios-share-social' type="Octicons" size={22} color='#158e73' opacity={0.9}/>
+          name='ios-share-social' type="Octicons" size={22} color='#158e73' />
           </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>Share Your Profile</Heading>
+           <Heading fontSize='sm' fontFamily='heading' color='text.600' mb='auto'mt='auto'>Share Your Profile</Heading>
            
            <Box mb='auto'mt='auto'  ml='auto'>
            <Ionicons 
-          name='ios-chevron-forward' type="Octicons" size={18} opacity={0.9} color='#475569'
+          name='ios-chevron-forward' type="Octicons" size={22}  color='#475569'
             />
           </Box>
         </HStack>
+        </TouchableWithoutFeedback>
       </Box>
       <Box h='45' w='90%' borderColor= "#F8FAFB"
-       mt={1}>
-      <HStack mb='auto'mt='auto' space={4}>
-          <Box bg="#eff3f6" size={9} borderRadius={10}
+       >
+         <TouchableWithoutFeedback onPress={()=> logout()}>
+      <HStack mb='auto'mt='auto' space={6}>
+        
+          <Box bg="#eff3f6" size={10} borderRadius={9}
           alignItems="center" justifyContent="center" >
+
           <Ionicons 
-          name='ios-exit' type="Octicons" size={22} color='#158e73' opacity={0.9}/>
+          name='ios-exit' type="Octicons" size={22} color='#158e73' />
           </Box>
-           <Heading fontSize='sm' color='text.500'   mb='auto'mt='auto'>Log Out</Heading>
+           <Heading fontSize='sm' color='danger.600'  fontFamily='heading' fontWeight='400' mb='auto'mt='auto'>Log Out</Heading>
            
            <Box mb='auto'mt='auto'  ml='auto'>
            <Ionicons 
-          name='ios-chevron-forward' type="Octicons" size={18} opacity={0.9} color='#475569'
+          name='ios-chevron-forward' type="Octicons" size={22}  color='#475569'
             />
           </Box>
         </HStack>
+        </TouchableWithoutFeedback>
+
       </Box>
         </VStack>
       </Box>
 
    
 
-                </VStack>
+                 </VStack>
+                
+                  <Box >
+                   
+   <ReusableModal visible={modalVisible} onClose={closeModal}>
+  <ScrollView w='100%' >
+    
+    <Heading color='#158e73' fontSize="16" mb='4' fontFamily='heading'>
+      About Me
+    </Heading>
+          <Text fontSize="16" fontFamily='heading' fontWeight='400'color="gray.700" w='100%' textAlign='center'>
+          {data ? data.about|| <Text>Let your customers know about you</Text>:<Text>Add an about me</Text>  }
+          </Text>
+       </ScrollView>
+      </ReusableModal>
+      </Box>
+
+
+
                 <Center>
    
    <Actionsheet isOpen={isOpen} onClose={onClose} size="full" h="100%">
@@ -288,13 +381,7 @@ useEffect(() => {
          </Text>
        </Box>
        <Actionsheet.Item>
-        <Box borderWidth={1} borderColor='#158e73' rounded='md'>
-          <Text fontSize="14" color="gray.700" m={3}>
-          I am 25 year old Make-Up artiste, with about 5 years 
-            experience in the beauty business. You can contact me on 08128085142
-             or follow me on Instagram @rejiPhil
-          </Text>
-        </Box>
+       
        </Actionsheet.Item>
      </Actionsheet.Content>
    </Actionsheet>
