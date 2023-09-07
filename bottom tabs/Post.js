@@ -1,17 +1,29 @@
-import React, { useState , useEffect } from 'react';
-import { StyleSheet,  TouchableOpacity,  View ,} from 'react-native';
-import {Box, FormControl, Input, ScrollView, TextArea, Image,Text,Button, Center, Avatar} from "native-base"
+import { polyfillWebCrypto } from "expo-standard-web-crypto";
+
+import React, { useState , useEffect , useCallback} from 'react';
+import { UserAuth } from '../context/context'
+import {  v4  } from "uuid";
+import {   TouchableOpacity,  } from 'react-native';
+import { collection, query, where ,doc, setDoc, onSnapshot,serverTimestamp } from "firebase/firestore";
+import { db , storage} from '../firebase';
+import { ref , uploadBytesResumable, getDownloadURL,} from 'firebase/storage';
+import {Box, FormControl, Input, ScrollView, TextArea, Image,Text,Button, Center,} from "native-base"
 import DropDownCat from '../Components/DropDownCat';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker' 
 
+  polyfillWebCrypto();
+const Post = ({navigation}) => {
 
-const Post = () => {
+const {user} = UserAuth();
+const postID = v4();
+const[name, setName]=useState('')
 const [title, setTitle] = useState('')
 const [ price, setPrice] = useState('')
 const [story, setStory] = useState('')
 const [category, setCategory] = useState('')
 const [image, setImage] = useState([])
+const [imageDownload, setImageDownload] = useState(null)
 const [errorOutput, setErrorOutput] = useState({
   title: null,
   price: null,
@@ -22,6 +34,33 @@ const [errorOutput, setErrorOutput] = useState({
 const [button, setButton] = useState(false)
 const [imageUri, setImageUri] = useState(null)
 const [handlePermissions, setHandlePermissions] = useState(null)
+useEffect(() => {
+  
+  if(!user){
+    navigation.navigate("SignIn")
+  }
+  else{
+    const q = query(collection(db, 'users'), where('userID', '==', user.uid));
+  
+        //The unsubscribe function returned by onSnapshot is used to 
+        //remove the listener when the component unmounts, preventing memory leaks.
+  
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const doc = querySnapshot.docs[0];
+            console.log(doc.id, ' => ', doc.data());
+           
+  
+            setName(doc.data().firstname + ' '+ doc.data().surname)
+          }
+        });
+  
+        return () => {
+          unsubscribe();
+        };
+  }
+  
+}, [user])
 
 
  /* this validate function, checks all the required fields for errors, 
@@ -64,8 +103,8 @@ const [handlePermissions, setHandlePermissions] = useState(null)
   return errors;
 };
 
-const handleCategorySelection = (select) => {
-  setCategory(select);
+const handleCategorySelection = (category) => {
+  setCategory(category);
 
 };
 
@@ -90,15 +129,13 @@ const pickImages = async (index) => {
     
   });
 
-  
-   console.log('user clicked council')
   if (!result.canceled) {
     if(result.assets.length <=3) {
       const uris = result.assets.map(item => item.uri);
       const newImages = [...image];
       newImages[index] = uris[0]; // Replace the image at the specified index
       setImage(newImages);
-setButton(false)
+      setButton(false)
     }
     else{
       setImageUri(result.assets.length)
@@ -201,28 +238,76 @@ return <Text>No access to gallery</Text>
     
     const errors = validate();
     try {
+      console.log(category)
       if (Object.keys(errors).some((key) => errors[key] !== "")) {
         console.log(errors);
       } else {
-        console.log(title, imageUri, price, story)
+        console.log(title, image, price, story)
+        // const postRef = doc(collection(db, "posts", category, postID));
+        console.log('post id '+postID)
        
-    
-        
-        setErrorOutput({
-          title: null,
-          imageUri: null,
-          price: null,
-          story: null,
-          category: null,
-        
+        const storagePromises = image.map(async (image, index) => {
+          const storageRef = ref(storage, `postImages/${postID}/pictures/image${index}`);
+          const response = await fetch(image);
+          const blob = await response.blob();
+          const uploadTask = uploadBytesResumable(storageRef, blob);
+  
+          return new Promise(async (resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              // ... progress and error handlers ...
+              () => {
+                // Handle progress
+              },
+              (error) => {
+                reject(error); // Reject the promise if there's an error
+              },
+              async () => {
+                // Handle successful uploads on complete
+                try {
+                  const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                  console.log('File available at', downloadURL);
+                  resolve(downloadURL); // Resolve the promise with the download URL
+                } catch (error) {
+                  reject(error); // Reject the promise if there's an error
+                }
+              }
+            );
+          });
         });
-        return false
+  
+        // Wait for all image uploads to complete
+        const uploadedImageURLs = await Promise.all(storagePromises);
+  
+        // Now you can use the uploadedImageURLs array to store the URLs in Firestore or perform other operations
+        
+        setImageDownload(uploadedImageURLs);
+        await setDoc(doc(db, 'posts','all',category,postID), 
+          {
+            author: name,
+            content:story,
+            postImg:imageDownload,
+            createdAt: serverTimestamp(),
+            title,
+            price,
+            userID: user.uid
+          }, {merge:true});
+    
+          setErrorOutput({
+            title: null,
+            imageUri: null,
+            price: null,
+            story: null,
+            category: null,
+          
+          });
+        
       }
     
     } catch (e) {
       
       console.log("Error validate " + e.message);
-    return true
+    
 
     }
   };
@@ -409,43 +494,5 @@ return <Text>No access to gallery</Text>
   
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    padding: 16,
-  },
-  dropdown: {
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  label: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 14,
-  },
-  placeholderStyle: {
-    fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-  },
-});
+
 export default Post;
