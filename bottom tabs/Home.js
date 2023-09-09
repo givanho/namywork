@@ -1,44 +1,56 @@
 import React,{useState, useEffect} from 'react'
 import { Ionicons } from '@expo/vector-icons';
 import { Box, Image,View, Text, HStack,VStack, Divider, Heading} from 'native-base'
-import { FlatList} from 'react-native'
-import { collection, query, where , onSnapshot } from "firebase/firestore";
+import { FlatList, TouchableWithoutFeedback, TouchableOpacity} from 'react-native'
+import { collection,  getDocs } from "firebase/firestore";
 import { db } from '../firebase';
 import { UserAuth } from '../context/context'
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const Home = ({navigation}) => {
   const [adList, setAdList] = useState([]);
   const {user} = UserAuth();
 
   useEffect(() => {
- 
-   
-      //When the query snapshot changes (new data is added), 
-     // the onSnapshot callback function is called. If the query snapshot is not empty, 
-    
-    const q = query(collection(db, 'posts'));
+    const fetchData = async () => {
+      try {
+        const postQuerySnapshot = await getDocs(collection(db, 'posts'));
+        const userQuerySnapshot = await getDocs(collection(db, 'users'));
   
-    //The unsubscribe function returned by onSnapshot is used to 
-    //remove the listener when the component unmounts, preventing memory leaks.
-    
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const Ad = [];
-      querySnapshot.forEach((doc) => {
-        // Extract data from the document
-        const data = doc.data();
-        Ad.push({ id: doc.id, ...data });
+        const postData = [];
+        postQuerySnapshot.forEach((doc) => {
+          postData.push({ id: doc.id, ...doc.data() });
+        });
+  
+        const userData = [];
+        userQuerySnapshot.forEach((doc) => {
+          userData.push({ id: doc.id, ...doc.data() });
+        });
+
+         // Iterate through postData and match it with userData
+      const updatedPostData = postData.map((post) => {
+        const matchingUser = userData.find((user) => user.userID === post.userID);
+        if (matchingUser) {
+          // Extract location from matching user data
+          const location = matchingUser.location;
+          const userImg = matchingUser.userImg;
+          const skill = matchingUser.skill;
+          
+          // Add location to the post object
+          return { ...post, location, userImg, skill };
+        }
+        // If no matching user is found, return the post as is
+        return post;
       });
-      // Update the state with the post data
-      setAdList(Ad);
-    });
-     
+
   
-    return () => {
-      unsubscribe();
+        setAdList(updatedPostData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
-    
-  }, [ ])
+  
+    fetchData();
+  }, []);
   return (
     
     <View h='100%' bg="#eff3f6">
@@ -235,8 +247,12 @@ const Home = ({navigation}) => {
   renderItem={({ item }) => (
     <VStack space={8}>
 {/* start of the view */}
-<TouchableOpacity  onPress={() => {
-                  navigation.navigate('SinglePost');
+<TouchableWithoutFeedback  onPress={() => {
+                  // eslint-disable-next-line react/prop-types
+                  navigation.navigate('Details', { category: item.category, location: item.location,
+                     price:item.price, content:item.content, postID:item.postID, name:item.author,
+                    createdAt:item.createdAt, Img:item.postImg, postTitle:item.title,
+                  profilePic:item.userImg, userSkill:item.skill});
                   }}>
     <VStack  borderWidth={0.7} borderColor='#ccc' bg='#fff' borderRadius='10' w='95%' alignItems="center" 
     justifyContent="center" mb={3}
@@ -261,17 +277,27 @@ const Home = ({navigation}) => {
     </Box>
   
   {/* text title */}
-<Text fontSize='15'  ml={4} isTruncated maxW="300" w="80%" noOfLines={3} > 
+<Text fontSize='13'  ml={4} isTruncated maxW="300" w="80%" noOfLines={2} > 
 {item?item.title: 'waiting...'}</Text>
 
 {/* text category and price */}
-  <Box flexDirection="row"  justifyContent="space-between" m={4} >
- <Box backgroundColor='#d3f8f0'  height='4' borderRadius='4' > 
-  <Text fontSize='11'color='#000' pl={1} pr={1}>  {item?item.category: 'waiting...'}</Text> 
-  </Box> 
-  <Heading fontSize='18' >₦ {item?item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","): 'waiting...'} </Heading>
+  <Box flexDirection="row"  justifyContent="space-between" mx={3} my={2}>
+  <Box  backgroundColor='emerald.300'  borderRadius='4' alignSelf='center' 
+        isTruncated maxW="300" w="50%"  > 
+           <Text fontSize='11'color='#000' isTruncated maxW="300" w="100%"
+   pl={1} pr={1}>  {item?item.category: 'waiting...'}</Text> 
+            </Box> 
+ {/* <Box backgroundColor='#d3f8f0'  height='4' borderRadius='4' > 
+   
+  </Box>  */}
+  <Heading fontSize='17' >₦ {item?item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","): 'waiting...'} </Heading>
   </Box>
   
+  {/* location */}
+  <Box flexDirection='row' justifyContent='space-between' mx={3} alignItems='center'>
+    <Ionicons name='location-sharp' color='#158e73' size={15}/>
+    <Text fontSize='12' > {item?item.location ||'no location' : 'waiting..'} </Text>
+  </Box>
 </View>
 
   </HStack>
@@ -308,7 +334,7 @@ const Home = ({navigation}) => {
  </VStack>
   
   
- </TouchableOpacity>
+ </TouchableWithoutFeedback>
 
   </VStack>
   )}
