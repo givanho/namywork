@@ -8,7 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Actionsheet } from "native-base";
 import { TouchableWithoutFeedback } from 'react-native';
 import ReusableModal from '../Components/Modal';
-import { collection, query, where ,doc, setDoc, onSnapshot, } from "firebase/firestore";
+import { collection, query, where ,doc, setDoc, onSnapshot,getDocs } from "firebase/firestore";
 
 import { db } from '../firebase';
 import { storage } from '../firebase';
@@ -23,7 +23,7 @@ const [uploading, setUploading] = useState(false);
 const [transferred, setTransferred] = useState(0);
 const [data, setData] = useState(null)
 const [userImgSrc, setUserImgSrc] = useState(require("../assets/avatar.png"));
-
+const [favorited, setFavorited] = useState(null)
 
 // ActionSheet State manager
 const {
@@ -44,7 +44,7 @@ const closeModal = () => {
 
 
 //imageupload function
-const imageUpload = async (uri, email) =>{
+const imageUpload = async (uri, ) =>{
 
 
   try {
@@ -102,7 +102,7 @@ const pickImage = async () => {
     
      console.log('user clicked council')
     if (!result.canceled) {
-      const email = user.email; // Replace with actual user ID
+      const email = user.email; 
    await   imageUpload(result.assets[0].uri, email);
       // setImage(imageUri);
     }
@@ -163,6 +163,43 @@ const pickImage = async () => {
     }
   }, [image]);
     
+
+  useEffect(() => {
+    const fetchData = async () => {
+  
+       const postQuerySnapshot = await getDocs(collection(db, "posts"));
+       
+  
+    // Extract postIDs directly from the postQuerySnapshot
+  
+    const postData = [];
+    postQuerySnapshot.forEach((doc) => {
+      postData.push({ id: doc.id, ...doc.data() });
+    });
+
+let totalLikes = 0;
+
+ postData.forEach((post) => {
+  if (post.userID === user.uid && post.likes && Array.isArray(post.likes)) {
+    totalLikes += post.likes.length;
+  }
+});
+
+
+setFavorited(totalLikes)
+  
+  }
+  const postsCollectionRef = collection(db, "posts");
+  
+  const unsubscribePosts = onSnapshot(postsCollectionRef, fetchData);
+  
+  return () => {
+    // Unsubscribe from the listeners when the component unmounts
+    unsubscribePosts();
+  
+  }
+  }, [])
+
   return (
     <ScrollView  bg="#eff3f6"  showsVerticalScrollIndicator={false} pt={5} >
     <VStack  alignItems='center' alignContent='center'pb={40}  >
@@ -255,7 +292,7 @@ const pickImage = async () => {
           name='md-heart' type= "Octicons"size={22} color='#158e73' />
           </Box>
            <Heading fontSize='sm'fontWeight='600' fontFamily='heading' color='text.600'   mb='auto'mt='auto'>Favorited</Heading>
-           <Heading fontSize='md'fontFamily='heading' color='text.600' ml='auto'  mb='auto'mt='auto'>500</Heading>
+           <Heading fontSize='md'fontFamily='heading' color='text.600' ml='auto'  mb='auto'mt='auto'>{favorited}</Heading>
         </HStack>
       </Box>
       
