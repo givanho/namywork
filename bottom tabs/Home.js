@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import { polyfillWebCrypto } from "expo-standard-web-crypto";
-
 import { Ionicons } from "@expo/vector-icons";
+import LoadState from "../Components/LoadState";
 import {
   Box,
   Image,
@@ -17,6 +17,7 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   TouchableOpacity,
+  Alert 
 } from "react-native";
 import {
   collection,
@@ -35,9 +36,13 @@ polyfillWebCrypto();
 const Home = ({ navigation }) => {
   const [adList, setAdList] = useState([]);
   const { user } = UserAuth();
+  const [error, setError] = useState(null)
+  const [triggerFetch, setTriggerFetch] = useState(0);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError(null)
         const postQuerySnapshot = await getDocs(collection(db, "posts"));
         const userQuerySnapshot = await getDocs(collection(db, "users"));
 
@@ -79,10 +84,11 @@ const Home = ({ navigation }) => {
         );
 
         setAdList(updatedPostData);
-        console.log("adlist=>", adList);
       } catch (error) {
-        console.error("Error fetching data:", error);
+       setError('error loading Posts: ',error)
+      
       }
+      
     };
 
     // Use onSnapshot to listen for real-time updates to 'posts' and 'users' collections
@@ -92,25 +98,37 @@ const Home = ({ navigation }) => {
     const unsubscribePosts = onSnapshot(postsCollectionRef, fetchData);
     const unsubscribeUsers = onSnapshot(usersCollectionRef, fetchData);
 
+
+    if (triggerFetch > 0) {
+      unsubscribePosts();
+      unsubscribeUsers();
+      setTriggerFetch(0); // Reset the trigger
+    }
+
     return () => {
       // Unsubscribe from the listeners when the component unmounts
       unsubscribePosts();
       unsubscribeUsers();
     };
-  }, [user]);
+
+     // Only fetch data when triggerFetch changes
+     
+  }, [user, triggerFetch]);
 
   // Function to handle liking/unliking a post
   const handleLikeToggle = async (postId, liked) => {
+
     if (!user) {
       // Handle the case where the user is not authenticated
 
       navigation.navigate("SignIn");
       return;
     }
-
+  
     const postRef = doc(db, "posts", postId);
 
     try {
+      
       if (liked) {
         // If the user already liked the post, remove their like
         await updateDoc(postRef, {
@@ -125,468 +143,516 @@ const Home = ({ navigation }) => {
         console.log("likes added");
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
-    }
+      Alert.alert('Error', 'Error liking post');
+    } 
   };
 
+  const fetchNewData = () => {
+    setTriggerFetch((prev) => prev + 1); // Increment triggerFetch to re-run useEffect
+  };
+  
   return (
     <View h="100%" bg="#eff3f6">
+        
+ 
       <FlatList
         data={adList}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={() => (
           <Box mt={10}>
-            <Heading ml={2}>Categories</Heading>
+          <Heading color='text.600' ml={2}>Categories</Heading>
+          <Box
+            width="95%"
+            alignSelf="center"
+            mb={10}
+            margin={3}
+            flexDirection="row"
+            justifyContent="space-between"
+            flexWrap="wrap"
+          >
             <Box
-              width="95%"
-              alignSelf="center"
-              mb={32}
-              margin={3}
-              flexDirection="row"
-              justifyContent="space-between"
-              flexWrap="wrap"
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+              
             >
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
+              <Image
+                source={require("../assets/category/carpenter.png")}
+                alt="carpenter"
+                size="10"
+                resizeMode="contain"
                 mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/carpenter.png")}
-                  alt="carpenter"
-                  size="20"
-                  resizeMode="contain"
-                />
+              />
 
-                <Text mb={3} color="#000">
-                  Carpenter
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
+              <Text mb={3} color="#000">
+                Carpenter
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/cctvInstaller.png")}
+                alt="cctv"
+                size="10"
                 mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/cctvInstaller.png")}
-                  alt="cctv"
-                  size="20"
-                  resizeMode="contain"
-                />
+                resizeMode="contain"
+              />
 
-                <Text mb={3} color="#000">
-                  CCTV Installer
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
+              <Text mb={3} color="#000">
+                CCTV Installer
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/door.png")}
+                alt="door"
+                size="10"
+                mt="1"
                 mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/door.png")}
-                  alt="door"
-                  size="16"
-                  resizeMode="contain"
-                />
+                resizeMode="contain"
+              />
 
-                <Text fontSize="12" numberOfLines={2} mb={3} color="#000">
-                  Alluminum Dors & Windows Installation
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/productionlight.png")}
-                  alt="plumber"
-                  size="20"
-                  m={1}
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Plumber
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/teamworkcrop.png")}
-                  alt="floor-work"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text numberOfLines={2} mb={2} fontSize="12" color="#000">
-                  Floor Tiling & P.O.P Installation
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/workercut.png")}
-                  alt="chef"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
-                  Food & Restaurant
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/hairstyle.png")}
-                  alt="hairstyle"
-                  size="20"
-                  resizeMode="contain"
-                  mb={2}
-                />
-
-                <Text mb={3} color="#000">
-                  Hair Stylist
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/handbag.png")}
-                  alt="handbag"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
-                  HandBag, Beads, Crotchet making etc
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/instrumentalist.png")}
-                  alt="instrumentalist"
-                  m={-17}
-                  size="32"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Instrumentalist
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/gardener.png")}
-                  alt="gardener"
-                  size="32"
-                  m={-15}
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Gardener
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/makeup.png")}
-                  alt="makeup"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Make-Up, Nails and Eyelashes
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/mechanic.png")}
-                  alt="car"
-                  size="20"
-                  m={1}
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Auto Mechanic
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/paintbrush.png")}
-                  alt="brush"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Painter
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/eventplanner.png")}
-                  alt="calendar"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Event Planner
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/welder.png")}
-                  alt="welder"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Welder
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/phonerepair.png")}
-                  alt="phone"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text fontSize="13" mb={3} color="#000">
-                  Phone & Laptop repairer
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/photogrphy.png")}
-                  alt="camera"
-                  size="32"
-                  m={-13}
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Photographer
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/watch.png")}
-                  alt="watch"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Wrist Watch Repairer
-                </Text>
-              </Box>
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/solarpanel.png")}
-                  alt="solar"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Solar Power Installation
-                </Text>
-              </Box>
-
-              <Box
-                flexDirection="column"
-                justifyContent="space-between"
-                mb={3}
-                borderWidth="1"
-                borderColor="#ccc"
-                borderRadius="10"
-                w="32%"
-                alignItems="center"
-              >
-                <Image
-                  source={require("../assets/category/wallpaper.png")}
-                  alt="wallpaper"
-                  size="20"
-                  resizeMode="contain"
-                />
-
-                <Text mb={3} color="#000">
-                  Wallpaper Installation
-                </Text>
-              </Box>
+              <Text fontSize="12" numberOfLines={2} mb={3} color="#000">
+                Alluminum Dors & Windows Installation
+              </Text>
             </Box>
 
-            <Heading ml={2}>All Handworks</Heading>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/productionlight.png")}
+                alt="plumber"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Plumber
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/teamworkcrop.png")}
+                alt="floor-work"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text numberOfLines={2} mb={2} fontSize="12" color="#000">
+                Floor Tiling & P.O.P Installation
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/workercut.png")}
+                alt="chef"
+                size="12"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
+                Food & Restaurant
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/hairstyle.png")}
+                alt="hairstyle"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Hair Stylist
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/handbag.png")}
+                alt="handbag"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
+                HandBag, Beads, Crotchet making etc
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/instrumentalist.png")}
+                alt="instrumentalist"
+                mb={1}
+                size="16"
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Instrumentalist
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/gardener.png")}
+                alt="gardener"
+                size="12"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Gardener
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/makeup.png")}
+                alt="makeup"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Make-Up, Nails and Eyelashes
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/mechanic.png")}
+                alt="car"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Auto Mechanic
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/paintbrush.png")}
+                alt="brush"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Painter
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/eventplanner.png")}
+                alt="calendar"
+                size="12"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Event Planner
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/welder.png")}
+                alt="welder"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Welder
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/phonerepair.png")}
+                alt="phone"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text fontSize="13" mb={3} color="#000">
+                Phone & Laptop repairer
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/photogrphy.png")}
+                alt="camera"
+                size="12"
+               
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Photographer
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/watch.png")}
+                alt="watch"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Wrist Watch Repairer
+              </Text>
+            </Box>
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/solarpanel.png")}
+                alt="solar"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Solar Power Installation
+              </Text>
+            </Box>
+
+            <Box
+              flexDirection="column"
+              justifyContent="center"
+              mb={3}
+              borderWidth="1"
+              borderColor="#ccc"
+              borderRadius="10"
+              w="32%"
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/wallpaper.png")}
+                alt="wallpaper"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Wallpaper Installation
+              </Text>
+            </Box>
           </Box>
+
+          <Heading color="text.600"ml={2} mb={3}>All Handworks</Heading>
+      {adList.length === 0 ? <LoadState
+ style={{ width: '20%', aspectRatio: 1, marginTop:5 }}
+showAnimation={true}
+title={'No posts yet..'}
+source={require('../assets/animation/loaded.json')}
+>
+{error ?<Box alignItems='center' ><Text fontSize='16' color='error.600'> error</Text>
+<TouchableOpacity onPress={fetchNewData}>
+ <Box flexDirection='row'  width='100%' alignItems='center'>
+   <Ionicons name='refresh' size={16}/>
+   <Text ml={1}textDecorationLine='underline' fontSize='14' color='#158e73'>Try Again</Text>
+ </Box></TouchableOpacity> </Box> : null}
+ </LoadState> : null}
+ 
+
+
+
+
+
+
+ 
+        </Box>
         )}
         renderItem={({ item }) => (
-          <VStack space={8}>
+          <View>
+          
+
+          <VStack mb={6}>
+         
+      
             {/* start of the view */}
             <TouchableWithoutFeedback
               onPress={() => {
@@ -603,6 +669,7 @@ const Home = ({ navigation }) => {
                   postTitle: item.title,
                   profilePic: item.userImg,
                   userSkill: item.skill,
+                  postAuthorID: item.userID
                 });
               }}
             >
@@ -758,7 +825,14 @@ const Home = ({ navigation }) => {
                   {/* message or edit button */}
                   <Box w="40%">
                     {!user || user.uid != item.userID ? (
-                      <TouchableOpacity>
+                      <TouchableOpacity  onPress={() => {
+                        // eslint-disable-next-line react/prop-types
+                     user?   navigation.navigate("MessageMenu", {
+                          fname: item.author,
+                          fprofilePic: item.userImg,
+                          fpostAuthorID: item.userID
+                        }):navigation.navigate("SignIn")
+                      }}>
                         <Box
                           flexDirection="row"
                           justifyContent="space-evenly"
@@ -820,7 +894,10 @@ const Home = ({ navigation }) => {
                 </HStack>
               </VStack>
             </TouchableWithoutFeedback>
+            
           </VStack>
+          
+          </View>
         )}
       />
     </View>
