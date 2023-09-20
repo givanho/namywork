@@ -8,6 +8,7 @@ import {
     Easing,
   } from 'react-native';
   import React from 'react';
+import { shadow } from 'react-native-paper';
   
   const {width, height} = Dimensions.get('screen');
   
@@ -24,7 +25,7 @@ import {
     return (
       <View style={styles.container}>
         <Animated.Image
-          source={item.img}
+          source={{ uri: item.imageUrl }}
           resizeMode="cover"
           style={[
             styles.image,
@@ -50,28 +51,19 @@ import {
       width,
       height,
       alignItems: 'center',
+      
     },
     image: {
-      height:'30%',
-      width: '100%',
+      width: '95%',
+                 
+                 height: "auto",
+                resizeMode:"contain",
+                borderRadius:20,
+                borderWidth:1,
+                borderColor:'#ccc',
+                 aspectRatio: 3 / 2,
      
     },
-    content: {
-      flex: 0.4,
-      alignItems: 'center',
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#333',
-    },
-    description: {
-      fontSize: 18,
-      marginVertical: 12,
-      color: '#333',
-    },
-    price: {
-      fontSize: 32,
-      fontWeight: 'bold',
-    },
+    
+   
   });
