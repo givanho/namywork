@@ -17,9 +17,11 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   TouchableOpacity,
-  Alert 
+  Alert,
+  Linking
 } from "react-native";
 import {
+  orderBy,
   collection,
   getDocs,
   doc,
@@ -27,8 +29,13 @@ import {
   updateDoc,
   arrayRemove,
   arrayUnion,
+  query,
+  deleteDoc ,
+  
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
+import { ref, listAll, deleteObject } from 'firebase/storage';
+
 import { UserAuth } from "../context/context";
 
 polyfillWebCrypto();
@@ -38,35 +45,45 @@ const Home = ({ navigation }) => {
   const { user } = UserAuth();
   const [error, setError] = useState(null)
   const [triggerFetch, setTriggerFetch] = useState(0);
-
+  const [privatePic, setPrivatePic ] = useState('')
   useEffect(() => {
     const fetchData = async () => {
       try {
         setError(null)
-        const postQuerySnapshot = await getDocs(collection(db, "posts"));
+        const postsCollectionRef = collection(db, 'posts');
+        
         const userQuerySnapshot = await getDocs(collection(db, "users"));
 
         // Extract postIDs directly from the postQuerySnapshot
+        const postQuery = query(postsCollectionRef, orderBy('createdAt', 'desc'));
+        const postQuerySnapshot = await getDocs(postQuery);
+
+
 
         const postData = [];
         postQuerySnapshot.forEach((doc) => {
           postData.push({ id: doc.id, ...doc.data() });
         });
-
+        
         const userData = [];
         userQuerySnapshot.forEach((doc) => {
-          userData.push({ id: doc.id, ...doc.data() });
+          userData.push({ id: doc.id, ...doc.data() })
+        
+        
         });
 
         const updatedPostData = await Promise.all(
           postData.map(async (post) => {
             const matchingUser = userData.find(
               (user) => user.userID === post.userID
+             
             );
+           
             if (matchingUser) {
               const location = matchingUser.location;
               const userImg = matchingUser.userImg;
               const skill = matchingUser.skill;
+              const number = matchingUser.number;
 
               let liked = false;
 
@@ -77,7 +94,7 @@ const Home = ({ navigation }) => {
                 }
               }
 
-              return { ...post, location, userImg, skill, liked };
+              return { ...post, location, userImg, skill, liked, privatePic, number };
             }
             return post;
           })
@@ -134,13 +151,11 @@ const Home = ({ navigation }) => {
         await updateDoc(postRef, {
           likes: arrayRemove(user.uid),
         });
-        console.log("likes removed");
       } else {
         // If the user hasn't liked the post, add their like
         await updateDoc(postRef, {
           likes: arrayUnion(user.uid),
         });
-        console.log("likes added");
       }
     } catch (error) {
       Alert.alert('Error', 'Error liking post');
@@ -151,6 +166,83 @@ const Home = ({ navigation }) => {
     setTriggerFetch((prev) => prev + 1); // Increment triggerFetch to re-run useEffect
   };
   
+
+
+
+  const dial =  (number) => {
+    Linking.openURL(`tel:${number}`)
+   }
+
+
+   const handleDelete = (postID) => {
+    // Show a confirmation dialog
+    Alert.alert(
+      'Delete Confirmation',
+      'Are you sure you want to delete this item?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: () => {
+            // Handle the delete action here
+            // Put your delete logic here
+            deletePost(postID)
+            console.log('Item deleted');
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: false } // Prevent the user from dismissing the dialog by tapping outside of it
+    );
+  };
+   
+
+   const deletePost = (postID) =>{
+    Alert.prompt
+    const imageRef = ref(storage, "postImages/" + postID + "/pictures");
+    async function deleteFolderContents(imageRef) {
+      try {
+        // List all items (files and subfolders) in the folder
+        const items = await listAll(imageRef);
+    
+        // Delete each item in the folder
+        const deletePromises = items.items.map(async (item) => {
+          if (item.isDirectory) {
+            // If it's a subfolder, recursively delete its contents
+            await deleteFolderContents(item);
+          } else {
+            // If it's a file, delete it
+            await deleteObject(item);
+          }
+        });
+      // Wait for all deletion promises to complete
+      await Promise.all(deletePromises);
+
+      console.log('Folder and its contents deleted successfully');
+    } catch (error) {
+      console.error('Error deleting folder and its contents: ', error);
+    }
+  }
+    
+    // Call the function to delete the folder and its contents
+    deleteFolderContents(imageRef);
+    deletePostData(postID)
+   }
+   const deletePostData = (postID)=>{
+    const postDocRef = doc(db, 'posts', postID);
+
+    // Delete the document
+    deleteDoc(postDocRef)
+      .then(() => {
+        console.log('Post deleted successfully', postID);
+      })
+      .catch((error) => {
+        console.error('Error deleting post: ', error);
+      });
+   }
   return (
     <View h="100%" bg="#eff3f6">
         
@@ -623,12 +715,41 @@ const Home = ({ navigation }) => {
           </Box>
 
           <Heading color="text.600"ml={2} mb={3}>All Handworks</Heading>
-      {adList.length === 0 ? <LoadState
- style={{ width: '20%', aspectRatio: 1, marginTop:5 }}
-showAnimation={true}
-title={'No posts yet..'}
-source={require('../assets/animation/loaded.json')}
->
+      {adList.length === 0 ?  <LoadState
+          style={{ width: '30%',  aspectRatio: 1, marginTop:-5 }}
+          showAnimation={true}
+          title= {'No post yet.' }
+         
+          source={require('../assets/animation/loaded.json')}
+          colorFilters={
+            [
+              {
+                keypath: "Shape Layer 1",
+                color: "#2C9981",
+              },
+              {
+                keypath: "Shape Layer 2",
+                color: "#158e73",
+              },
+              {
+                keypath: "Shape Layer 3",
+                color: "#0E624F",
+              },
+              {
+                keypath: "Shape Layer 4",
+                color: "#44A58F",
+              },
+              {
+                keypath: "Shape Layer 6",
+                color: "#2ADFB7",
+              },
+              {
+                keypath: "Shape Layer 5",
+                color: "#5BB09D",
+              },
+            ]
+          }
+          >
 {error ?<Box alignItems='center' ><Text fontSize='16' color='error.600'> error</Text>
 <TouchableOpacity onPress={fetchNewData}>
  <Box flexDirection='row'  width='100%' alignItems='center'>
@@ -669,6 +790,7 @@ source={require('../assets/animation/loaded.json')}
                   postTitle: item.title,
                   profilePic: item.userImg,
                   userSkill: item.skill,
+                  number: item.number,
                   postAuthorID: item.userID
                 });
               }}
@@ -869,26 +991,43 @@ source={require('../assets/animation/loaded.json')}
                   />
 
                   {/* call or delete button */}
-                  <Box w="40%">
+                  <Box w="40%" >
                     {!user || user.uid != item.userID ? (
-                      <TouchableOpacity>
+                      <TouchableOpacity  onPress={() =>
+                        dial(item.number)
+                      }>
                         <Box
                           flexDirection="row"
                           justifyContent="space-evenly"
                           alignItems="center"
                         >
-                          <Ionicons name="call-sharp" color="#000" size={15} />
+                          <Ionicons name="call-sharp" color="#36454F" size={15} />
                           <Text textAlign="center" color="#000" fontSize="13">
                             {" "}
+
                             Call
                           </Text>
                         </Box>
                       </TouchableOpacity>
                     ) : (
-                      <Text textAlign="center" color="danger.600" fontSize="13">
+                      <TouchableOpacity  onPress={() =>
+                        handleDelete(item.postID)
+                      }>
+
+                          <Box
+                          flexDirection="row"
+                          justifyContent="space-evenly"
+                          alignItems="center"
+                         >
+                          <Ionicons name="trash-bin-sharp" color="#36454F" size={20} />
+                          <Text textAlign="center" color="danger.600" fontSize="13">
                         {" "}
                         delete
                       </Text>
+                        </Box>
+                        
+                      </TouchableOpacity>
+                      
                     )}
                   </Box>
                 </HStack>
