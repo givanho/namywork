@@ -10,15 +10,17 @@ import {
   Text,
   HStack,
   VStack,
-  Divider,
+  
   Heading,
+  
 } from "native-base";
 import {
   FlatList,
   TouchableWithoutFeedback,
   TouchableOpacity,
   Alert,
-  Linking
+  Linking,
+  StyleSheet
 } from "react-native";
 import {
   orderBy,
@@ -42,6 +44,7 @@ polyfillWebCrypto();
 
 const Home = ({ navigation }) => {
   const [adList, setAdList] = useState([]);
+
   const { user } = UserAuth();
   const [error, setError] = useState(null)
   const [triggerFetch, setTriggerFetch] = useState(0);
@@ -243,16 +246,63 @@ const Home = ({ navigation }) => {
         console.error('Error deleting post: ', error);
       });
    }
-  return (
-    <View h="100%" bg="#eff3f6">
-        
+   
+
+
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity style={{marginRight:15}} onPress={() => {
+            // eslint-disable-next-line react/prop-types
+            navigation.navigate("Search", {
+              adList: adList,
+            
+            });
+          }}
+          >
+      <Ionicons  name='search-outline' color='#fff' size={28} />
+      </TouchableOpacity>
+        ),
+      }); 
  
+const onPressHandler = (item) => {
+    navigation.navigate('Category',{
+      adList:adList,
+      category:item
+    });
+   
+  };
+  
+  return (
+    <View h="100%" backgroundColor='#F3F5F6'>
+     
+ {/* Alluminum Doors & Windows Installation
+Auto-Mechanic
+Carpenter
+CCTV Installation
+Event Planner
+Floor Tiling & P.O.P Installation
+Food & Restaurant
+Gardener
+Hair Stylist
+HandBag, Beads, Crotchet making etc
+Instrumentalist
+Make-Up, Nails and Eyelashes
+Painter
+Phone and Laptop Repair
+Plumber
+Photographer
+Solar Power Installation
+Tailoring & Fashion
+Wallpaper Installation
+Welder
+Wristwatch Repair */}
       <FlatList
         data={adList}
         keyExtractor={(item) => item.id}
+      showsVerticalScrollIndicator={false}
         ListHeaderComponent={() => (
           <Box mt={10}>
-          <Heading color='text.600' ml={2}>Categories</Heading>
+          <Heading color='#36454F' ml={2}>Categories</Heading>
           <Box
             width="95%"
             alignSelf="center"
@@ -262,59 +312,9 @@ const Home = ({ navigation }) => {
             justifyContent="space-between"
             flexWrap="wrap"
           >
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Alluminum Doors & Windows Installation")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-              
-            >
-              <Image
-                source={require("../assets/category/carpenter.png")}
-                alt="carpenter"
-                size="10"
-                resizeMode="contain"
-                mb={3}
-              />
-
-              <Text mb={3} color="#000">
-                Carpenter
-              </Text>
-            </Box>
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/cctvInstaller.png")}
-                alt="cctv"
-                size="10"
-                mb={3}
-                resizeMode="contain"
-              />
-
-              <Text mb={3} color="#000">
-                CCTV Installer
-              </Text>
-            </Box>
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+             
               alignItems="center"
             >
               <Image
@@ -327,200 +327,13 @@ const Home = ({ navigation }) => {
               />
 
               <Text fontSize="12" numberOfLines={2} mb={3} color="#000">
-                Alluminum Dors & Windows Installation
+                Alluminum Doors & Windows Installation
               </Text>
             </Box>
-
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Auto-Mechanic")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/productionlight.png")}
-                alt="plumber"
-                size="10"
-                mb={3}
-                resizeMode="contain"
-              />
-
-              <Text mb={3} color="#000">
-                Plumber
-              </Text>
-            </Box>
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/teamworkcrop.png")}
-                alt="floor-work"
-                size="10"
-                mb={3}
-                resizeMode="contain"
-              />
-
-              <Text numberOfLines={2} mb={2} fontSize="12" color="#000">
-                Floor Tiling & P.O.P Installation
-              </Text>
-            </Box>
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/workercut.png")}
-                alt="chef"
-                size="12"
-                mb={3}
-                resizeMode="contain"
-              />
-
-              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
-                Food & Restaurant
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/hairstyle.png")}
-                alt="hairstyle"
-                size="10"
-                resizeMode="contain"
-                mb={3}
-              />
-
-              <Text mb={3} color="#000">
-                Hair Stylist
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/handbag.png")}
-                alt="handbag"
-                size="10"
-                resizeMode="contain"
-                mb={3}
-              />
-
-              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
-                HandBag, Beads, Crotchet making etc
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/instrumentalist.png")}
-                alt="instrumentalist"
-                mb={1}
-                size="16"
-                resizeMode="contain"
-              />
-
-              <Text mb={3} color="#000">
-                Instrumentalist
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/gardener.png")}
-                alt="gardener"
-                size="12"
-                mb={3}
-                resizeMode="contain"
-              />
-
-              <Text mb={3} color="#000">
-                Gardener
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
-            >
-              <Image
-                source={require("../assets/category/makeup.png")}
-                alt="makeup"
-                size="10"
-                resizeMode="contain"
-                mb={3}
-              />
-
-              <Text mb={3} color="#000">
-                Make-Up, Nails and Eyelashes
-              </Text>
-            </Box>
-
-            <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+             
               alignItems="center"
             >
               <Image
@@ -535,36 +348,49 @@ const Home = ({ navigation }) => {
                 Auto Mechanic
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category } onPress={() => onPressHandler("Carpenter")}
+           
+           >
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
+            alignItems="center"
+             
+              
             >
               <Image
-                source={require("../assets/category/paintbrush.png")}
-                alt="brush"
+                source={require("../assets/category/carpenter.png")}
+                alt="carpenter"
                 size="10"
                 resizeMode="contain"
                 mb={3}
               />
 
               <Text mb={3} color="#000">
-                Painter
+                Carpenter
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("CCTV Installation")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+             
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/cctvInstaller.png")}
+                alt="cctv"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                CCTV Installer
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Event Planner")}>
+            <Box
+             
               alignItems="center"
             >
               <Image
@@ -579,37 +405,153 @@ const Home = ({ navigation }) => {
                 Event Planner
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Floor Tiling & P.O.P Installation")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+             
               alignItems="center"
             >
               <Image
-                source={require("../assets/category/welder.png")}
-                alt="welder"
+                source={require("../assets/category/teamworkcrop.png")}
+                alt="floor-work"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text numberOfLines={2} mb={2} fontSize="12" color="#000">
+                Floor Tiling & P.O.P Installation
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Food & Restaurant")}>
+            <Box
+             
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/workercut.png")}
+                alt="chef"
+                size="12"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
+                Food & Restaurant
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Gardener")}>
+            <Box
+           
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/gardener.png")}
+                alt="gardener"
+                size="12"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Gardener
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Hair Stylist")}>
+            <Box
+           
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/hairstyle.png")}
+                alt="hairstyle"
                 size="10"
                 resizeMode="contain"
                 mb={3}
               />
 
               <Text mb={3} color="#000">
-                Welder
+                Hair Stylist
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("HandBag, Beads, Crotchet making etc")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+            
               alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/handbag.png")}
+                alt="handbag"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text numberOfLines={2} fontSize="12" mb={3} color="#000">
+                HandBag, Beads, Crotchet making etc
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Instrumentalist")}>
+            <Box
+             
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/instrumentalist.png")}
+                alt="instrumentalist"
+                mb={1}
+                size="16"
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+                Instrumentalist
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Make-Up, Nails and Eyelashes")}>
+            <Box
+             
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/makeup.png")}
+                alt="makeup"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Make-Up, Nails and Eyelashes
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Painter")}>
+            <Box
+              alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/paintbrush.png")}
+                alt="brush"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Painter
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Phone and Laptop Repair")}>
+            <Box
+             alignItems="center"
             >
               <Image
                 source={require("../assets/category/phonerepair.png")}
@@ -623,15 +565,10 @@ const Home = ({ navigation }) => {
                 Phone & Laptop repairer
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler ("Photographer")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
+             alignItems="center"
             >
               <Image
                 source={require("../assets/category/photogrphy.png")}
@@ -645,37 +582,28 @@ const Home = ({ navigation }) => {
                 Photographer
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category} onPress={() => onPressHandler("Plumber")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
+             
               alignItems="center"
             >
               <Image
-                source={require("../assets/category/watch.png")}
-                alt="watch"
+                source={require("../assets/category/productionlight.png")}
+                alt="plumber"
                 size="10"
-                resizeMode="contain"
                 mb={3}
+                resizeMode="contain"
               />
 
               <Text mb={3} color="#000">
-                Wrist Watch Repairer
+                Plumber
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Solar Power Installation")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
+            alignItems="center"
             >
               <Image
                 source={require("../assets/category/solarpanel.png")}
@@ -689,16 +617,10 @@ const Home = ({ navigation }) => {
                 Solar Power Installation
               </Text>
             </Box>
-
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Wallpaper Installation")}>
             <Box
-              flexDirection="column"
-              justifyContent="center"
-              mb={3}
-              borderWidth="1"
-              borderColor="#ccc"
-              borderRadius="10"
-              w="32%"
-              alignItems="center"
+           alignItems="center"
             >
               <Image
                 source={require("../assets/category/wallpaper.png")}
@@ -712,9 +634,45 @@ const Home = ({ navigation }) => {
                 Wallpaper Installation
               </Text>
             </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Welder")}>
+            <Box
+             alignItems="center"
+             
+            >
+              <Image
+                source={require("../assets/category/welder.png")}
+                alt="welder"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Welder
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Wristwatch Repair")}>
+            <Box
+           alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/watch.png")}
+                alt="watch"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Wrist Watch Repairer
+              </Text>
+            </Box>
+            </TouchableOpacity>
           </Box>
 
-          <Heading color="text.600"ml={2} mb={3}>All Handworks</Heading>
+          <Heading color="#36454F"ml={2} >All Services</Heading>
       {adList.length === 0 ?  <LoadState
           style={{ width: '30%',  aspectRatio: 1, marginTop:-5 }}
           showAnimation={true}
@@ -796,8 +754,8 @@ const Home = ({ navigation }) => {
               }}
             >
               <VStack
-                borderWidth={0.7}
-                borderColor="#ccc"
+                borderWidth='0.4'
+                borderColor="#71797E"
                 bg="#fff"
                 borderRadius="10"
                 w="95%"
@@ -883,7 +841,7 @@ const Home = ({ navigation }) => {
                       my={2}
                     >
                       <Box
-                        backgroundColor="emerald.300"
+                        backgroundColor="emerald.200"
                         borderRadius="4"
                         alignSelf="center"
                         isTruncated
@@ -904,7 +862,7 @@ const Home = ({ navigation }) => {
                         </Text>
                       </Box>
 
-                      <Heading fontSize="17">
+                      <Heading fontSize="17" color='#36454F'>
                         ₦{" "}
                         {item
                           ? item.price
@@ -936,16 +894,16 @@ const Home = ({ navigation }) => {
                   </View>
                 </HStack>
                 <HStack
-                  borderTopWidth="3px"
-                  borderTopColor="#eff3f6"
+                  
                   w="100%"
-                  h={10}
+                  h={12}
                   alignItems="center"
                   alignContent="center"
                   justifyContent="space-between"
                 >
                   {/* message or edit button */}
-                  <Box w="40%">
+                  <Box w="40%" ml={3} pt={3} borderTopWidth="1"
+                  borderTopColor="emerald.600">
                     {!user || user.uid != item.userID ? (
                       <TouchableOpacity  onPress={() => {
                         // eslint-disable-next-line react/prop-types
@@ -963,7 +921,7 @@ const Home = ({ navigation }) => {
                           <Ionicons
                             name="send-sharp"
                             color="#158e73"
-                            size={15}
+                            size={20}
                           />
                           <Text
                             textAlign="center"
@@ -983,15 +941,11 @@ const Home = ({ navigation }) => {
                     )}
                   </Box>
 
-                  <Divider
-                    bg="#eff3f6"
-                    thickness="3"
-                    mx="4"
-                    orientation="vertical"
-                  />
+                  
 
                   {/* call or delete button */}
-                  <Box w="40%" >
+                  <Box w="40%" mr={3} pt={3} borderTopWidth="1"
+                  borderTopColor="cyan.300">
                     {!user || user.uid != item.userID ? (
                       <TouchableOpacity  onPress={() =>
                         dial(item.number)
@@ -1001,7 +955,7 @@ const Home = ({ navigation }) => {
                           justifyContent="space-evenly"
                           alignItems="center"
                         >
-                          <Ionicons name="call-sharp" color="#36454F" size={15} />
+                          <Ionicons name="call-sharp" color="#36454F" size={20} />
                           <Text textAlign="center" color="#000" fontSize="13">
                             {" "}
 
@@ -1043,4 +997,22 @@ const Home = ({ navigation }) => {
   );
 };
 
+const styles = StyleSheet.create({
+category:{
+          width:'32%',
+           
+          flexDirection:'column',
+           justifyContent:"center",
+           marginBottom:10,
+           borderWidth:0.4,
+           borderColor:"#71797E",
+           borderRadius:10,
+           borderBottomWidth:3,
+           
+           borderBottomColor:'#D3D3D3',
+           
+}
+}
+
+)
 export default Home;
