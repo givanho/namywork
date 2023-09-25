@@ -1,27 +1,20 @@
 
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, } from 'react-native'
 import React, {useEffect, useCallback, useState, useLayoutEffect} from 'react'
-import { GiftedChat, Send, Bubble, InputToolbar } from 'react-native-gifted-chat'
-import {ScrollView, Box, Image, Center ,Text, Input,Button,
-  AspectRatio, Stack,HStack,Flex,VStack, Spacer, Link,KeyboardAvoidingView,
-  FormControl,Heading} from 'native-base'
-import Messages from '../bottom tabs/Messages'
+import { GiftedChat, Send, Bubble, InputToolbar,  } from 'react-native-gifted-chat'
+import { Text } from 'native-base'
   import {
     collection,
-    setDoc,
     where,
     addDoc,
     orderBy,
-    doc,
     query,
     onSnapshot
   } from 'firebase/firestore';
   import { db } from "../firebase";
 import { UserAuth } from "../context/context";
 
-import LoadState from '../Components/LoadState';
-import LottieView from 'lottie-react-native';
-import { Ionicons } from '@expo/vector-icons'
+import { Entypo } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons'
 const MessageMenu = ({navigation, route}) => {
   const {chatRoomKeys , fpostAuthorID, receiverIDs,
@@ -182,6 +175,15 @@ const inputProps = (props) =>{
   )
 }
 
+const chatEmpty = () =>{
+  return (
+    <View style={{ flex:1, justifyContent:'center',
+    alignItems:'center', transform: [{  rotateX:'180deg' }] }}>
+     <Entypo name='new-message' size={72} color='#ccc'/>
+     <Text color='text.400'>Start new Chat</Text>
+    </View>
+  )
+}
   return (
     <View style={{ height:'100%', width:'100%', }}>
          <GiftedChat
@@ -198,6 +200,7 @@ const inputProps = (props) =>{
           fontFamily: 'Poppins-Regular',
           
         }}
+        renderChatEmpty={chatEmpty}
          renderSend={renderSend}
         renderBubble={renderBubble}
         scrollToBottom={true}
