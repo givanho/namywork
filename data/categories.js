@@ -82,9 +82,13 @@ const categories = [
     {
         id:21,
         title:"Gardener"
+    }, 
+    {
+        id:22,
+        title:"Others"
     }
 
 
 ]
-
+categories.sort((a, b) => a.title.localeCompare(b.title));
 export default categories
