@@ -275,27 +275,7 @@ const onPressHandler = (item) => {
   return (
     <View h="100%" backgroundColor='#F3F5F6'>
      
- {/* Alluminum Doors & Windows Installation
-Auto-Mechanic
-Carpenter
-CCTV Installation
-Event Planner
-Floor Tiling & P.O.P Installation
-Food & Restaurant
-Gardener
-Hair Stylist
-HandBag, Beads, Crotchet making etc
-Instrumentalist
-Make-Up, Nails and Eyelashes
-Painter
-Phone and Laptop Repair
-Plumber
-Photographer
-Solar Power Installation
-Tailoring & Fashion
-Wallpaper Installation
-Welder
-Wristwatch Repair */}
+ 
       <FlatList
         data={adList}
         keyExtractor={(item) => item.id}
@@ -618,6 +598,23 @@ Wristwatch Repair */}
               </Text>
             </Box>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Tailoring & Fashion")}>
+            <Box
+            alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/fashiondesign.png")}
+                alt="fashion"
+                size="10"
+                mb={3}
+                resizeMode="contain"
+              />
+
+              <Text mb={3} color="#000">
+              Tailoring & Fashion
+              </Text>
+            </Box>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Wallpaper Installation")}>
             <Box
            alignItems="center"
@@ -667,6 +664,23 @@ Wristwatch Repair */}
 
               <Text mb={3} color="#000">
                 Wrist Watch Repairer
+              </Text>
+            </Box>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.category}onPress={() => onPressHandler("Others")}>
+            <Box
+           alignItems="center"
+            >
+              <Image
+                source={require("../assets/category/others.png")}
+                alt="others"
+                size="10"
+                resizeMode="contain"
+                mb={3}
+              />
+
+              <Text mb={3} color="#000">
+                Others
               </Text>
             </Box>
             </TouchableOpacity>
@@ -726,7 +740,7 @@ Wristwatch Repair */}
         </Box>
         )}
         renderItem={({ item }) => (
-          <View>
+          <View mt={2}>
           
 
           <VStack mb={6}>
