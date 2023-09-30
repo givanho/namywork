@@ -849,7 +849,7 @@ const states = [
 "Maru LGA",
 "Shinkafi LGA",
 "Talata Mafara LGA",
-"Zurmi LGA"
+"Zurmi"
 ]}
 
 
