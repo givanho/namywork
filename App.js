@@ -18,16 +18,10 @@ import SinglePost from "./Screens/SinglePost";
 import Search from "./Screens/Search";
 import { Ionicons } from '@expo/vector-icons';
 import {
-  Box,
-  Image,
-  View,
-  Text,
-  HStack,
-  VStack,
-  Divider,
-  Heading,
+
   Input,
 } from "native-base";
+import ForgotPassword from "./Authentication/ForgotPassword";
 SplashScreen.preventAutoHideAsync();
 
 
@@ -130,6 +124,27 @@ export default function App({navigation}) {
           headerStatusBarHeight:10,
           cardStyleInterpolator: forSlide ,
        }}/> 
+
+<Nav.Screen name='ForgotPassword' component ={ForgotPassword}
+         options={{  
+          headerShown:true,
+          headerTitle:'Forgot Password?',
+        headerTintColor:'#36454F',
+          headerTitleAlign:'center',
+          headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          headerStyle:{
+            borderWidth:StyleSheet.hairlineWidth,
+            borderColor:'#71797E',
+        
+            elevation: 15,
+            shadowOpacity: 1,
+           
+          },
+          headerShadowVisible:true,
+          headerStatusBarHeight:10,
+          cardStyleInterpolator: forSlide ,
+       }}/> 
+
        <Nav.Screen name='SignUp' component={SignUp}
        options={{  
         headerTitle:'Create Account',
