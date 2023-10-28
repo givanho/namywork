@@ -1,10 +1,7 @@
 // ReusableModal.js
 import React from 'react';
-import { Modal, StatusBar, TouchableOpacity,TouchableWithoutFeedback, PanResponder , View} from 'react-native';
-import { Box, Image, Center ,Text, Actionsheet,
-    Input,useDisclose, ScrollView,AspectRatio, 
-    Stack,VStack,HStack,Flex, Spacer,
-    Button,Heading} from 'native-base'
+import { Modal, StatusBar, TouchableWithoutFeedback, PanResponder , View} from 'react-native';
+import { Box, Image,} from 'native-base'
 
 const ReusableModal = ({ visible, onClose, children }) => {
   const panResponder = React.useMemo(() => {
@@ -20,6 +17,7 @@ const ReusableModal = ({ visible, onClose, children }) => {
   }, [onClose]);
 
   return (
+    
     <Modal
       animationType="slide"
       transparent={true}
@@ -42,6 +40,7 @@ const ReusableModal = ({ visible, onClose, children }) => {
 </Box>
 </TouchableWithoutFeedback>
         <View
+        
         {...panResponder.panHandlers} // Attach panResponder to the View
 
          style={{
@@ -56,6 +55,8 @@ const ReusableModal = ({ visible, onClose, children }) => {
             zIndex:1
          }}
         >
+                 <StatusBar barStyle = "dark-content" hidden = {false}  backgroundColor="rgba(0, 0, 0, 0.4)" translucent = {true}/>
+
             <View style={{marginTop:-20}}>
     <Image  alignItems="center" justifyContent="center" alignSelf='center' alignContent='center'
     source= {require('../assets/lines.png')}

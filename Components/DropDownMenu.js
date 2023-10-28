@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-  import { StyleSheet, View, Text } from 'react-native';
+  import { StyleSheet, View,  } from 'react-native';
   import { Dropdown } from 'react-native-element-dropdown';
   import { Ionicons } from '@expo/vector-icons';
 import states from '../data/states';
@@ -152,7 +152,7 @@ borderBottomColor:'#158e73',
         onBlur={() => setIsFocus(false)}
         maxHeight={300}
         labelField="cityname"
-        valueField="id"
+        valueField="cityname"
         placeholder={locationCapital}
         searchPlaceholder="Search..."
         value={capital}
@@ -184,7 +184,7 @@ borderBottomColor:'#158e73',
         width:'100%',
       height:42,
         // backgroundColor:'#F8FAFB',
-      fontFamily:"Poppins-Regular",
+      // fontFamily:"Poppins-Regular",
       borderBottomWidth:1,
       borderBottomColor:'#158e73',
     },
@@ -194,12 +194,12 @@ borderBottomColor:'#158e73',
     placeholderStyle: {
       fontSize: 12,
       paddingStart:10,
-      fontFamily:"Poppins-light",
+      // fontFamily:"Poppins-light",
       color:'gray'
     },
     selectedTextStyle: {
       fontSize: 13,
-      fontFamily:"Poppins-Regular"
+      // fontFamily:"Poppins-Regular"
     },
     iconStyle: {
       width: 20,
@@ -208,7 +208,7 @@ borderBottomColor:'#158e73',
     inputSearchStyle: {
       height: 40,
       fontSize: 16,
-      fontFamily:"Poppins-Regular"
+      // fontFamily:"Poppins-Regular"
     },
     containeryy:{
         backgroundColor:"#fff",
@@ -220,7 +220,7 @@ borderBottomColor:'#158e73',
     },
     itemTextStyle:{
         fontSize: 13,
-        fontFamily:"Poppins-Regular",
+        // fontFamily:"Poppins-Regular",
         borderRadius:10,
         borderBottomWidth:1,
        

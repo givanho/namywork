@@ -4,7 +4,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import categories from '../data/categories';
 import { Ionicons } from '@expo/vector-icons';
 
-const DropDownCat = () => {
+const DropDownCat = ({onSelectCategory}) => {
   const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
@@ -19,6 +19,13 @@ const DropDownCat = () => {
       return null;
     };
 
+
+     //props sent to edit screen
+     const handleCategory = (item) => {
+        
+        onSelectCategory(item);
+      };
+
     return (
       <View style={styles.container}>
         {renderLabel()}
@@ -31,7 +38,6 @@ const DropDownCat = () => {
           containerStyle={styles.containerStyle}
           itemContainerStyle={styles.containeryy}
           itemTextStyle={styles.itemTextStyle}
-          activeColor={styles.activeColor}
           data={categories}
           search
           maxHeight={300}
@@ -43,8 +49,10 @@ const DropDownCat = () => {
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
-            setValue(item.value);
+            setValue(item.id);
+            handleCategory(item.title)
             setIsFocus(false);
+            
           }}
           renderRightIcon={() => (
             <Ionicons
@@ -72,18 +80,19 @@ const DropDownCat = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
-    padding: 16,
+    
+    width:'100%'
   },
   activeColor:{
     backgroundColor: '#e5e6ea',
   },
   dropdown: {
     height: 50,
-    borderColor: '#e5e6ea',
-    borderWidth: 1,
+    borderWidth:0.4,
+    borderColor:"#71797E",
     borderRadius: 8,
     paddingHorizontal: 8,
-    fontFamily:"Poppins-Regular",
+    // fontFamily:"Poppins-Regular",
   },
   icon: {
     marginRight: 5,
@@ -92,11 +101,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'white',
     left: 22,
-    top: 8,
+    top: -12,
     zIndex: 999,
     paddingHorizontal: 8,
     fontSize: 13,
-    fontFamily:"Poppins-light",
+    // fontFamily:"Poppins-light",
   },
   selectedTextProps:{
     textTransform:'uppercase'
@@ -104,12 +113,12 @@ const styles = StyleSheet.create({
   placeholderStyle: {
     fontSize: 15,
       paddingStart:10,
-      fontFamily:"Poppins-light",
+      // fontFamily:"Poppins-light",
       
   },
   selectedTextStyle: {
     fontSize: 15,
-    fontFamily:"Poppins-Regular",
+    // fontFamily:"Poppins-Regular",
     
   },
   iconStyle: {
@@ -119,7 +128,7 @@ const styles = StyleSheet.create({
   inputSearchStyle: {
     height: 40,
     fontSize: 15,
-    fontFamily:"Poppins-light",
+    // fontFamily:"Poppins-light",
   },
   containeryy:{
     backgroundColor:"#fff",
@@ -128,7 +137,7 @@ const styles = StyleSheet.create({
 
 itemTextStyle:{
     fontSize: 13,
-    fontFamily:"Poppins-Regular",
+    // fontFamily:"Poppins-Regular",
     borderRadius:8,
     borderBottomWidth:1,
    
