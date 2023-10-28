@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "namywork",
+    "name": "handwork",
     "slug": "namywork",
     "version": "1.0.0",
+    "jsEngine": "hermes",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,10 +22,19 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+    "jsEngine": "hermes",
+      "package": "com.raiden1993.namywork"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+   
+    "extra": {
+      "eas": {
+        "projectId": "6dddd823-4028-4021-80fc-4a3c71677f86"
+      }
     }
-  }
+  },
+  "name": "handwork"
 }
