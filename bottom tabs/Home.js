@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { polyfillWebCrypto } from "expo-standard-web-crypto";
 import { Ionicons } from "@expo/vector-icons";
 import LoadState from "../Components/LoadState";
+
 import {
   Box,
   Image,
@@ -193,7 +194,6 @@ const Home = ({ navigation }) => {
             // Handle the delete action here
             // Put your delete logic here
             deletePost(postID)
-            console.log('Item deleted');
           },
           style: "destructive",
         },
@@ -224,9 +224,8 @@ const Home = ({ navigation }) => {
       // Wait for all deletion promises to complete
       await Promise.all(deletePromises);
 
-      console.log('Folder and its contents deleted successfully');
     } catch (error) {
-      console.error('Error deleting folder and its contents: ', error);
+      Alert.alert('Error deleting folder and its contents: ', error);
     }
   }
     
@@ -240,29 +239,35 @@ const Home = ({ navigation }) => {
     // Delete the document
     deleteDoc(postDocRef)
       .then(() => {
-        console.log('Post deleted successfully', postID);
       })
       .catch((error) => {
-        console.error('Error deleting post: ', error);
+        Alert.alert('Error deleting post: ', error);
       });
    }
    
-
-
+   useEffect(() => {
+    const setHeaderOptions = () => {
       navigation.setOptions({
         headerRight: () => (
-          <TouchableOpacity style={{marginRight:15}} onPress={() => {
-            // eslint-disable-next-line react/prop-types
-            navigation.navigate("Search", {
-              adList: adList,
-            
-            });
-          }}
+          <TouchableOpacity
+            style={{ marginRight: 15 }}
+            onPress={() => {
+              navigation.navigate('Search', {
+                adList: adList,
+              });
+            }}
           >
-      <Ionicons  name='search-outline' color='#fff' size={28} />
-      </TouchableOpacity>
+            <Ionicons name="search-outline" color="#fff" size={28} />
+          </TouchableOpacity>
         ),
-      }); 
+      });
+    };
+
+    // Call the function to set options
+    setHeaderOptions();
+  }, [navigation, adList]);
+
+     
  
 const onPressHandler = (item) => {
     navigation.navigate('Category',{
@@ -697,7 +702,7 @@ const onPressHandler = (item) => {
             [
               {
                 keypath: "Shape Layer 1",
-                color: "#2C9981",
+                color: "#000",
               },
               {
                 keypath: "Shape Layer 2",

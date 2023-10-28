@@ -1,4 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { setDoc, serverTimestamp, doc } from "firebase/firestore";
+import { db } from "../firebase";
 import {
   ScrollView,
   Box,
@@ -11,28 +13,30 @@ import {
   VStack,
   KeyboardAvoidingView,
   FormControl,
+  Pressable
 } from "native-base";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { parsePhoneNumber } from "libphonenumber-js";
-import { UserAuth } from "../context";
-const Nav = createNativeStackNavigator();
+import { UserAuth } from "../context/context";
+import { StyleSheet } from "react-native";
+import LoadState from "../Components/LoadState";
+import { Ionicons } from "@expo/vector-icons";
 
 const SignUp = ({ navigation }) => {
-  const [photoURL, setPhotoURL] = useState(
-    "https://img.icons8.com/?size=1x&id=23265&format=png"
-  );
-
+ 
+  const[loading, setLoading] = useState(false)
   const [userName, setUserName] = useState(null);
   const [lastName, setLastName] = useState(null);
   const [email, setEmail] = useState(null);
   const [emailError, setEmailError] = useState(null);
-  const [displayName, setNumber] = useState("");
+  const [number, setNumber] = useState("");
   const [password, setPasswowrd] = useState(null);
   const [rePassword, setRePassword] = useState(null);
+  const [show, setShow] = useState(false);
+
   const [errorOutput, setErrorOutput] = useState({
     firstname: null,
     lastName: null,
-    displayName: null,
+    number: null,
     password: null,
     rePassword: null,
     fireError: null,
@@ -45,7 +49,7 @@ const SignUp = ({ navigation }) => {
   const numberInputRef = useRef(null);
   const passwordInputRef = useRef(null);
   const repasswordInputRef = useRef(null);
-  const { createUser, googleSignIn, user, logout } = UserAuth();
+  const { createUser , user} = UserAuth();
   
 
   //the following blocks of code is used to focus correctly on the exact field a user  is filling
@@ -101,7 +105,6 @@ const SignUp = ({ navigation }) => {
         errors.lastname = "Last name is too short";
       } else if (!lastNameMod.match(/^[a-zA-Z]+\s*$/)) {
         errors.lastname = "Last name is not valid";
-        console.log(lastNameMod + " words");
       }
     } else {
       errors.lastname = "Last name is required";
@@ -109,21 +112,20 @@ const SignUp = ({ navigation }) => {
 
     // Phone number validation
     try {
-      const phoneNumbers = parsePhoneNumber(displayName, "NG");
+      const phoneNumbers = parsePhoneNumber(number, "NG");
       if (phoneNumbers) {
         if (phoneNumbers.isPossible() == false) {
-          errors.displayName = "enter a valid number";
+          errors.number = "enter a valid number";
         }
       }
     } catch (error) {
-      errors.displayName = error.message;
+      errors.number = error.message;
     }
 
     // Password validation
     if (!password) {
       errors.password = "enter a valid password";
     } else if (password === rePassword) {
-      console.log("Passwords matched");
       if (password.length < 6) {
         errors.password = "Password must be at least 6 characters";
       }
@@ -136,56 +138,54 @@ const SignUp = ({ navigation }) => {
   };
 
   useEffect(() => {
-    console.log("users " + user);
   }, [user]);
 
   /*When this function is triggered, it runs the validate function first, 
   then succesfully submit user'scredentials if no errors are found*/
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (userName == null) {
-      console.log("username null");
-    }
+    
     const errors = validate();
     try {
       if (Object.keys(errors).some((key) => errors[key] !== "")) {
-        console.log(errors);
+        setLoading(false)
       } else {
-        console.log("Success");
-        await createUser(email, password, displayName, photoURL)
-          .then(() => {
-            console.log(displayName);
-            // Perform any additional actions
-            console.log("user logged in");
-            navigation.navigate("Profile");
-          })
-
-          .catch((error) => {
-            console.log("Error creating user:", error.message);
-            setEmailError(error.message);
-            setErrorOutput({
-              firstname: null,
-              lastName: null,
-              displayName: null,
-              password: null,
-              rePassword: null,
-              fireError: null,
-            });
-          });
+        setLoading(true)
+        const user = await createUser(email, password);
+      if (user) {
+        await setDoc(doc(db, 'users', user.user.uid ), {
+          firstname: userName,
+          surname: lastName,
+          email,
+          number,
+          createdAt: serverTimestamp(),
+          userImg: null,
+          userID: user.user.uid
+        },{ merge: true })
+        navigation.navigate('Profile')
       }
+      else {
+        
+        setEmailError("error");
+        setErrorOutput({
+          firstname: null,
+          lastName: null,
+          number: null,
+          password: null,
+          rePassword: null,
+          fireError: null,
+        });
+        return false
+      }
+    }
     } catch (e) {
-      console.log("Error Email " + e.message);
+      setEmailError(e.message);
+     setLoading(false)
+    return true
+
     }
   };
-  // Google Sign In
-  const signInGoogle = async () => {
-    try {
-      await googleSignIn();
-      console.log("Signed in as");
-    } catch (e) {
-      console.log("Signin error  " + e.message);
-    }
-  };
+ 
 
   return (
     <KeyboardAvoidingView
@@ -201,7 +201,7 @@ const SignUp = ({ navigation }) => {
              align each item */}
 
             <Center>
-              <VStack width="90%" mx="3" maxW="320px">
+              <VStack width="95%" >
                 <Box alignSelf="center" pb={5}>
                   <Image
                     source={require("../assets/icon.png")}
@@ -230,7 +230,9 @@ const SignUp = ({ navigation }) => {
                       mb="2.5"
                       rounded="md"
                       type="text"
-                      _input={{ bg: "#fff" }}
+                      borderWidth='0.4'
+                      borderColor="#71797E"
+                      _input={{ bg: "#fff" ,  selectionColor:'#7FFFD4'}}
                       _focus={{
                         borderColor: "#158e73",
                         borderWidth: "1px",
@@ -257,7 +259,9 @@ const SignUp = ({ navigation }) => {
                       mb="2.5"
                       rounded="md"
                       type="number"
-                      _input={{ bg: "#fff" }}
+                      borderWidth='0.4'
+                      borderColor="#71797E"
+                      _input={{ bg: "#fff" ,  selectionColor:'#7FFFD4'}}
                       _focus={{
                         borderColor: "#158e73",
                         borderWidth: "1px",
@@ -280,9 +284,13 @@ const SignUp = ({ navigation }) => {
                 {/* Email */}
                 <FormControl isRequired isInvalid={emailError && emailError}>
                   <Input
+                  InputLeftElement={ <Box ml={3}><Ionicons name='mail' size={24} color="#36454F" />
+                  </Box>}
                     mb="2.5"
                     rounded="md"
-                    _input={{ bg: "#fff" }}
+                    borderWidth='0.4'
+                    borderColor="#71797E"
+                    _input={{ bg: "#fff" , selectionColor:'#7FFFD4' }}
                     _focus={{
                       borderColor: "#158e73",
                       borderWidth: "1px",
@@ -293,6 +301,7 @@ const SignUp = ({ navigation }) => {
                     ref={emailInputRef}
                     onSubmitEditing={focusNumberInput}
                     onChangeText={(text) => setEmail(text)}
+
                   />
                   {emailError && emailError && (
                     <Text fontSize={9} mb="3.5" mt="-2.5" color="error.600">
@@ -304,13 +313,17 @@ const SignUp = ({ navigation }) => {
                 {/* Number */}
                 <FormControl
                   isRequired
-                  isInvalid={errorOutput && errorOutput.displayName}
+                  isInvalid={errorOutput && errorOutput.number}
                 >
                   <Input
+                   InputLeftElement={ <Box ml={3}><Ionicons name='call' size={24} color="#36454F" />
+                   </Box>}
                     mb="2.5"
                     rounded="md"
                     type="number"
-                    _input={{ bg: "#fff" }}
+                    borderWidth='0.4'
+                    borderColor="#71797E"
+                    _input={{ bg: "#fff",  selectionColor:'#7FFFD4' }}
                     _focus={{
                       borderColor: "#158e73",
                       borderWidth: "1px",
@@ -322,9 +335,9 @@ const SignUp = ({ navigation }) => {
                     onSubmitEditing={focusPasswordInput}
                     onChangeText={(phoneNumber) => setNumber(phoneNumber)}
                   />
-                  {errorOutput && errorOutput.displayName && (
+                  {errorOutput && errorOutput.number && (
                     <Text fontSize={9} mb="3.5" mt="-2.5" color="error.600">
-                      {errorOutput.displayName}
+                      {errorOutput.number}
                     </Text>
                   )}
                 </FormControl>
@@ -335,21 +348,29 @@ const SignUp = ({ navigation }) => {
                   isInvalid={errorOutput && errorOutput.password}
                 >
                   <Input
+                  type={show ? "text" : "password"} 
+                  InputRightElement={<Pressable mr={3}  onPress={() => setShow(!show)}>
+                        <Ionicons name={show ? "eye" : "eye-off" }  size={24} color="#36454F" /> 
+                      </Pressable> }
+                       InputLeftElement={ <Box ml={3}><Ionicons name='key' size={24} color="#36454F" />
+                       </Box>}
                     mb="2.5"
                     rounded="md"
-                    type="password"
-                    _input={{ bg: "#fff" }}
+                    
+                    _input={{ bg: "#fff",  selectionColor:'#7FFFD4' }}
                     _focus={{
                       borderColor: "#158e73",
                       borderWidth: "1px",
                     }}
-                    placeholder="Password"
+                    placeholder="Password" 
                     returnKeyType="next"
-                    secureTextEntry={true}
+                    borderWidth='0.4'
+                    borderColor="#71797E"
                     ref={passwordInputRef}
                     onSubmitEditing={focusRePasswordInput}
                     onChangeText={(password) => setPasswowrd(password)}
                   />
+                  
                   {errorOutput && errorOutput.password && (
                     <Text fontSize={9} mb="3.5" mt="-2.5" color="error.600">
                       {errorOutput.password}
@@ -363,10 +384,17 @@ const SignUp = ({ navigation }) => {
                   isInvalid={errorOutput && errorOutput.password}
                 >
                   <Input
+                  type={show ? "text" : "password"} 
+                  InputRightElement={<Pressable mr={3}  onPress={() => setShow(!show)}>
+                        <Ionicons name={show ? "eye" : "eye-off" }  size={24} color="#36454F" /> 
+                      </Pressable> }
+                       InputLeftElement={ <Box ml={3}><Ionicons name='key' size={24} color="#36454F" />
+                       </Box>}
                     mb="2.5"
                     rounded="md"
-                    type="password"
-                    _input={{ bg: "#fff" }}
+                    borderWidth='0.4'
+                    borderColor="#71797E"
+                    _input={{ bg: "#fff",  selectionColor:'#7FFFD4' }}
                     _focus={{
                       borderColor: "#158e73",
                       borderWidth: "1px",
@@ -374,7 +402,6 @@ const SignUp = ({ navigation }) => {
                     placeholder="Re-Enter Password"
                     returnKeyType="done"
                     ref={repasswordInputRef}
-                    secureTextEntry={true}
                     onSubmitEditing={onSubmit}
                     onChangeText={(rePassword) => setRePassword(rePassword)}
                   />
@@ -384,28 +411,61 @@ const SignUp = ({ navigation }) => {
                     </Text>
                   )}
                 </FormControl>
+                <LoadState
+          style={{ width: '30%',  aspectRatio: 1, marginTop:-5 }}
+          showAnimation={loading}
+          title= {'Creating Account...' }
+          textStyle={styles.text}
+          source={require('../assets/animation/loaded.json')}
+          colorFilters={
+            [
+              {
+                keypath: "Shape Layer 1",
+                color: "#2C9981",
+              },
+              {
+                keypath: "Shape Layer 2",
+                color: "#158e73",
+              },
+              {
+                keypath: "Shape Layer 3",
+                color: "#0E624F",
+              },
+              {
+                keypath: "Shape Layer 4",
+                color: "#44A58F",
+              },
+              {
+                keypath: "Shape Layer 6",
+                color: "#2ADFB7",
+              },
+              {
+                keypath: "Shape Layer 5",
+                color: "#5BB09D",
+              },
+            ]
+          }
+          >
 
                 <Button
                   rounded="md"
                   onPress={onSubmit}
-                  mt="5"
+                  mt="24px"
                   bg="#158e73"
                   colorScheme="emerald"
-                >
-                  Sign Up
+                 >
+                  Create Account
                 </Button>
-
-                <Text>
-                  Already have an account?{" "}
-                  <Text
-                    color="green.700"
-                    onPress={() => {
-                      navigation.navigate("Portfolio");
-                    }}
-                  >
-                    Sign In{" "}
-                  </Text>
-                </Text>
+          </LoadState>
+               
+          <Box alignItems='center' mt='96px'>
+            <Text mb='8px'>
+            Already have an account? </Text> 
+              <Text textDecorationLine='underline' color="green.700" onPress={() => {
+                navigation.navigate('SignIn')
+              }}>Sign In </Text>
+    </Box>
+              
               </VStack>
             </Center>
           </Box>
@@ -416,3 +476,11 @@ const SignUp = ({ navigation }) => {
 };
 
 export default SignUp;
+const styles = StyleSheet.create({
+  text: {
+   fontSize:14,
+  marginTop:-35,
+  // fontFamily:'Poppins-Regular'
+
+  }
+});

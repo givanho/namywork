@@ -11,10 +11,14 @@ import {
   Divider,
   Heading,
 } from "native-base";
+import LoadState from "../Components/LoadState";
+
 import {
   FlatList,
   TouchableWithoutFeedback,
   TouchableOpacity,
+  Alert,
+ Linking
 } from "react-native";
 import {
   collection,
@@ -27,11 +31,19 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { UserAuth } from "../context/context";
+import { Avatar } from "react-native-gifted-chat";
 
 
 const Favorite = ({ navigation }) => {
   const [adList, setAdList] = useState([]);
   const { user } = UserAuth();
+  const [profilePicture, setProfilePicture] = React.useState('');
+
+
+  
+
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -59,7 +71,7 @@ const Favorite = ({ navigation }) => {
               const location = matchingUser.location;
               const userImg = matchingUser.userImg;
               const skill = matchingUser.skill;
-
+              const number = matchingUser.number;
               let liked = false;
               let userLiked = null;
               if (user?.uid) {
@@ -75,9 +87,8 @@ const Favorite = ({ navigation }) => {
   }
               }
 
-            console.log('userLikedPosts =>', userLiked)
-
-              return { ...post, location, userImg, skill, liked,userLiked };
+            setProfilePicture(userImg)
+              return { ...post, location, userImg, skill, liked,userLiked, number };
             }
             
             return post;
@@ -86,8 +97,9 @@ const Favorite = ({ navigation }) => {
         );
         const filteredPosts = updatedPostData.filter((post) => post.userLiked !== null);
         setAdList(filteredPosts);
+       
       } catch (error) {
-        console.error("Error fetching data:", error);
+        Alert.alert('Error', 'Error Fetching post');
       }
     };
 
@@ -122,205 +134,220 @@ const Favorite = ({ navigation }) => {
         await updateDoc(postRef, {
           likes: arrayRemove(user.uid),
         });
-        console.log("likes removed");
       } else {
         // If the user hasn't liked the post, add their like
         await updateDoc(postRef, {
           likes: arrayUnion(user.uid),
         });
-        console.log("likes added");
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
+    return
     }
   };
+  const dial =  (number) => {
+    Linking.openURL(`tel:${number}`)
+   }
 
   return (
     <View h="100%" bg="#eff3f6">
-      <FlatList
-        data={adList}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={() => (
-          <Box my={10}>
-            
-
-            <Heading ml={2}>My Favorites</Heading>
-          </Box>
-        )}
-        renderItem={({ item }) => (
-          <VStack mb={6}>
-            {/* start of the view */}
-            <TouchableWithoutFeedback
-              onPress={() => {
-                // eslint-disable-next-line react/prop-types
-                navigation.navigate("Details", {
-                  category: item.category,
-                  location: item.location,
-                  price: item.price,
-                  content: item.content,
-                  postID: item.postID,
-                  name: item.author,
-                  createdAt: item.createdAt,
-                  Img: item.postImg,
-                  postTitle: item.title,
-                  profilePic: item.userImg,
-                  userSkill: item.skill,
-                });
-              }}
+ 
+     {adList.length ===0 ?  
+          <LoadState
+          style={{ width: '100%',  aspectRatio: 1, marginTop:5 }}
+          showAnimation={true}
+          title={'No favorites yet.'}
+          source={require('../assets/animation/astro.json')}>
+          </LoadState>
+  :   
+  
+  <FlatList
+  data={adList}
+  keyExtractor={(item) => item.id}
+  
+  
+  renderItem={({ item }) => (
+   <VStack my={6}>
+   
+      <TouchableWithoutFeedback
+          onPress={() => {
+            // eslint-disable-next-line react/prop-types
+            navigation.navigate("Details", {
+              category: item.category,
+              location: item.location,
+              price: item.price,
+              content: item.content,
+              postID: item.postID,
+              name: item.author,
+              createdAt: item.createdAt,
+              Img: item.postImg,
+              postTitle: item.title,
+              profilePic: item.userImg,
+              userSkill: item.skill,
+              number: item.number,
+              postAuthorID: item.userID
+            });
+          }}
+      >
+        <VStack
+          borderWidth='0.4'
+          borderColor="#71797E"
+          bg="#fff"
+          borderRadius="10"
+          w="95%"
+          alignItems="center"
+          justifyContent="center"
+          mb={3}
+          alignSelf="center"
+          alignContent="center"
+        >
+          <HStack>
+            <Image
+              alignItems="center"
+              justifyContent="center"
+              alignSelf="center"
+              alignContent="center"
+              source={item ? { uri: item.postImg[0] } : null}
+              alt="Post Pic"
+              flex={1}
+              borderLeftRadius="10"
+              size="100%"
+              resizeMode="cover"
+            />
+            <View
+              bg="#fff"
+              w="55%"
+              borderRightRadius="10"
+              justifyContent="center"
+              mt={1}
             >
-              <VStack
-                borderWidth={0.7}
-                borderColor="#ccc"
-                bg="#fff"
-                borderRadius="10"
-                w="95%"
+              {/* date and heart */}
+              <Box
+                flexDirection="row"
+                justifyContent="space-between"
+                ml={4}
+                mr={4}
                 alignItems="center"
-                justifyContent="center"
-                mb={3}
-                alignSelf="center"
-                alignContent="center"
               >
-                <HStack>
-                  <Image
-                    alignItems="center"
-                    justifyContent="center"
-                    alignSelf="center"
-                    alignContent="center"
-                    source={item ? { uri: item.postImg[0] } : null}
-                    alt="Post Pic"
-                    flex={1}
-                    borderLeftRadius="10"
-                    size="100%"
-                    resizeMode="cover"
-                  />
-                  <View
-                    bg="#fff"
-                    w="55%"
-                    borderRightRadius="10"
-                    justifyContent="center"
-                    mt={1}
+                <Text fontSize="9">
+                  {item &&
+                  item.createdAt &&
+                  item.createdAt.toDate &&
+                  typeof item.createdAt.toDate === "function"
+                    ? item.createdAt.toDate().toDateString()
+                    : "waiting..."}
+                </Text>
+
+                {user && user.uid === item.userID ? null : (
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleLikeToggle(item.postID, item.liked)
+                    }
                   >
-                    {/* date and heart */}
-                    <Box
-                      flexDirection="row"
-                      justifyContent="space-between"
-                      ml={4}
-                      mr={4}
-                      alignItems="center"
-                    >
-                      <Text fontSize="9">
-                        {item &&
-                        item.createdAt &&
-                        item.createdAt.toDate &&
-                        typeof item.createdAt.toDate === "function"
-                          ? item.createdAt.toDate().toDateString()
-                          : "waiting..."}
-                      </Text>
-
-                      {user && user.uid === item.userID ? null : (
-                        <TouchableOpacity
-                          onPress={() =>
-                            handleLikeToggle(item.postID, item.liked)
-                          }
-                        >
-                          {item.liked ? (
-                            <Ionicons name="heart" size={24} color="#F58989" />
-                          ) : (
-                            <Ionicons
-                              name="heart-outline"
-                              size={24}
-                              color="#158e73"
-                            />
-                          )}
-                        </TouchableOpacity>
-                      )}
-                    </Box>
-
-                    {/* text title */}
-                    <Text
-                      fontSize="13"
-                      ml={4}
-                      isTruncated
-                      maxW="300"
-                      w="80%"
-                      noOfLines={2}
-                    >
-                      {item ? item.title : "waiting..."}
-                    </Text>
-
-                    {/* text category and price */}
-                    <Box
-                      flexDirection="row"
-                      justifyContent="space-between"
-                      mx={3}
-                      my={2}
-                    >
-                      <Box
-                        backgroundColor="emerald.300"
-                        borderRadius="4"
-                        alignSelf="center"
-                        isTruncated
-                        maxW="300"
-                        w="50%"
-                      >
-                        <Text
-                          fontSize="11"
-                          color="#000"
-                          isTruncated
-                          maxW="300"
-                          w="100%"
-                          pl={1}
-                          pr={1}
-                        >
-                          {" "}
-                          {item ? item.category : "waiting..."}
-                        </Text>
-                      </Box>
-
-                      <Heading fontSize="17">
-                        ₦{" "}
-                        {item
-                          ? item.price
-                              .toString()
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          : "waiting..."}{" "}
-                      </Heading>
-                    </Box>
-
-                    {/* location */}
-                    <Box
-                      flexDirection="row"
-                      justifyContent="space-between"
-                      mx={3}
-                      alignItems="center"
-                    >
+                    {item.liked ? (
+                      <Ionicons name="heart" size={24} color="#F58989" />
+                    ) : (
                       <Ionicons
-                        name="location-sharp"
+                        name="heart-outline"
+                        size={24}
                         color="#158e73"
-                        size={15}
                       />
-                      <Text fontSize="12">
-                        {" "}
-                        {item
-                          ? item.location || "no location"
-                          : "waiting.."}{" "}
-                      </Text>
-                    </Box>
-                  </View>
-                </HStack>
-                <HStack
-                  borderTopWidth="3px"
-                  borderTopColor="#eff3f6"
-                  w="100%"
-                  h={10}
-                  alignItems="center"
-                  alignContent="center"
-                  justifyContent="space-between"
+                    )}
+                  </TouchableOpacity>
+                )}
+              </Box>
+
+              {/* text title */}
+              <Text
+                fontSize="13"
+                ml={4}
+                isTruncated
+                maxW="300"
+                w="80%"
+                noOfLines={2}
+              >
+                {item ? item.title : "waiting..."}
+              </Text>
+
+              {/* text category and price */}
+              <Box
+                flexDirection="row"
+                justifyContent="space-between"
+                mx={3}
+                my={2}
+              >
+                <Box
+                  backgroundColor="emerald.200"
+                  borderRadius="4"
+                  alignSelf="center"
+                  isTruncated
+                  maxW="300"
+                  w="50%"
                 >
-                  {/* message or edit button */}
-                  <Box w="40%">
+                  <Text
+                    fontSize="11"
+                    color="#000"
+                    isTruncated
+                    maxW="300"
+                    w="100%"
+                    pl={1}
+                    pr={1}
+                  >
+                    {" "}
+                    {item ? item.category : "waiting..."}
+                  </Text>
+                </Box>
+
+                <Heading fontSize="17">
+                  ₦{" "}
+                  {item
+                    ? item.price
+                        .toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    : "waiting..."}{" "}
+                </Heading>
+              </Box>
+
+              {/* location */}
+              <Box
+                flexDirection="row"
+                justifyContent="space-between"
+                mx={3}
+                alignItems="center"
+              >
+                <Ionicons
+                  name="location-sharp"
+                  color="#158e73"
+                  size={15}
+                />
+                <Text fontSize="12">
+                  {" "}
+                  {item
+                    ? item.location || "no location"
+                    : "waiting.."}{" "}
+                </Text>
+              </Box>
+            </View>
+          </HStack>
+          <HStack
+            
+            w="100%"
+            h={12}
+            alignItems="center"
+            alignContent="center"
+            justifyContent="space-between"
+          >
+            {/* message or edit button */}
+            <Box w="40%" ml={3} pt={3} borderTopWidth="1"
+                  borderTopColor="emerald.600">
                     {!user || user.uid != item.userID ? (
-                      <TouchableOpacity>
+                      <TouchableOpacity  onPress={() => {
+                        // eslint-disable-next-line react/prop-types
+                     user?   navigation.navigate("MessageMenu", {
+                          fname: item.author,
+                          fprofilePic: item.userImg,
+                          fpostAuthorID: item.userID
+                        }):navigation.navigate("SignIn")
+                      }}>
                         <Box
                           flexDirection="row"
                           justifyContent="space-evenly"
@@ -329,7 +356,7 @@ const Favorite = ({ navigation }) => {
                           <Ionicons
                             name="send-sharp"
                             color="#158e73"
-                            size={15}
+                            size={20}
                           />
                           <Text
                             textAlign="center"
@@ -349,42 +376,56 @@ const Favorite = ({ navigation }) => {
                     )}
                   </Box>
 
-                  <Divider
-                    bg="#eff3f6"
-                    thickness="3"
-                    mx="4"
-                    orientation="vertical"
-                  />
 
-                  {/* call or delete button */}
-                  <Box w="40%">
+            {/* call or delete button */}
+            <Box w="40%" mr={3} pt={3} borderTopWidth="1"
+                  borderTopColor="cyan.300">
                     {!user || user.uid != item.userID ? (
-                      <TouchableOpacity>
+                      <TouchableOpacity  onPress={() =>
+                        dial(item.number)
+                      }>
                         <Box
                           flexDirection="row"
                           justifyContent="space-evenly"
                           alignItems="center"
                         >
-                          <Ionicons name="call-sharp" color="#000" size={15} />
+                          <Ionicons name="call-sharp" color="#36454F" size={20} />
                           <Text textAlign="center" color="#000" fontSize="13">
                             {" "}
+
                             Call
                           </Text>
                         </Box>
                       </TouchableOpacity>
                     ) : (
-                      <Text textAlign="center" color="danger.600" fontSize="13">
+                      <TouchableOpacity  onPress={() =>
+                        handleDelete(item.postID)
+                      }>
+
+                          <Box
+                          flexDirection="row"
+                          justifyContent="space-evenly"
+                          alignItems="center"
+                         >
+                          <Ionicons name="trash-bin-sharp" color="#36454F" size={20} />
+                          <Text textAlign="center" color="danger.600" fontSize="13">
                         {" "}
                         delete
                       </Text>
+                        </Box>
+                        
+                      </TouchableOpacity>
+                      
                     )}
                   </Box>
-                </HStack>
-              </VStack>
-            </TouchableWithoutFeedback>
-          </VStack>
-        )}
-      />
+          </HStack>
+        </VStack>
+      </TouchableWithoutFeedback>
+    </VStack>
+  )}
+/>
+  } 
+      
     </View>
   );
 };

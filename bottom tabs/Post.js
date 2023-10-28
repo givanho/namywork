@@ -1,9 +1,9 @@
 import { polyfillWebCrypto } from "expo-standard-web-crypto";
 
-import React, { useState , useEffect , useCallback} from 'react';
+import React, { useState , useEffect } from 'react';
 import { UserAuth } from '../context/context'
 import {  v4  } from "uuid";
-import {   TouchableOpacity,  } from 'react-native';
+import {   Alert, TouchableOpacity, StyleSheet  } from 'react-native';
 import { collection, query, where ,doc, setDoc, onSnapshot,serverTimestamp } from "firebase/firestore";
 import { db , storage} from '../firebase';
 import { ref , uploadBytesResumable, getDownloadURL,} from 'firebase/storage';
@@ -11,7 +11,7 @@ import {Box, FormControl, Input, ScrollView, TextArea, Image,Text,Button, Center
 import DropDownCat from '../Components/DropDownCat';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker' 
-
+import LoadState from "../Components/LoadState";
   polyfillWebCrypto();
 const Post = ({navigation}) => {
 
@@ -23,7 +23,6 @@ const [ price, setPrice] = useState('')
 const [story, setStory] = useState('')
 const [category, setCategory] = useState('')
 const [image, setImage] = useState([])
-const [imageDownload, setImageDownload] = useState(null)
 const [errorOutput, setErrorOutput] = useState({
   title: null,
   price: null,
@@ -31,9 +30,14 @@ const [errorOutput, setErrorOutput] = useState({
   imageUri: null,
   
 });
+const maxLength = 200;
+
 const [button, setButton] = useState(false)
 const [imageUri, setImageUri] = useState(null)
 const [handlePermissions, setHandlePermissions] = useState(null)
+const [loading, setLoading]= useState(false)
+const [loadingText, setLoadingText]= useState('')
+
 useEffect(() => {
   
   if(!user){
@@ -48,7 +52,7 @@ useEffect(() => {
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
           if (!querySnapshot.empty) {
             const doc = querySnapshot.docs[0];
-            console.log(doc.id, ' => ', doc.data());
+           
            
   
             setName(doc.data().firstname + ' '+ doc.data().surname)
@@ -139,7 +143,6 @@ const pickImages = async (index) => {
     }
     else{
       setImageUri(result.assets.length)
-      console.log('images should not exceed 3')
     }
 
   }
@@ -157,10 +160,8 @@ const pickImage = async () => {
   });
 
   
-   console.log('user clicked council')
   if (!result.canceled) {
     if(result.assets.length === 3) {
-      console.log(result.assets.length)
       setButton(false)
        const uris = result.assets.map(item => item.uri);
        setImage([...image, ...uris]);
@@ -174,7 +175,6 @@ const pickImage = async () => {
       const uris = result.assets.map(item => item.uri);
       setImage([...image, ...uris]);
       setButton(true)
-      console.log(result.assets.length)
    setImageUri(uris)
    setErrorOutput({
     imageUri: null,
@@ -184,7 +184,6 @@ const pickImage = async () => {
 
     else{
       setImageUri(result.assets.length)
-      console.log('images should not exceed 3')
     }
 
   }
@@ -238,14 +237,11 @@ return <Text>No access to gallery</Text>
     
     const errors = validate();
     try {
-      console.log(category)
+     setLoading(true)
       if (Object.keys(errors).some((key) => errors[key] !== "")) {
-        console.log(errors);
+        setLoading(false)
+        return 
       } else {
-        console.log(title, image, price, story)
-        // const postRef = doc(collection(db, "posts", category, postID));
-        console.log('post id '+postID)
-       
         const storagePromises = image.map(async (image, index) => {
           const storageRef = ref(storage, `postImages/${postID}/pictures/image${index}`);
           const response = await fetch(image);
@@ -255,18 +251,20 @@ return <Text>No access to gallery</Text>
           return new Promise(async (resolve, reject) => {
             uploadTask.on(
               'state_changed',
-              // ... progress and error handlers ...
-              () => {
-                // Handle progress
-              },
+              (snapshot) => {
+                // Observe state change events such as progress, pause, and resume
+                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setLoadingText('Uploading ' + progress + '% ')
+              }, 
+             
               (error) => {
                 reject(error); // Reject the promise if there's an error
               },
               async () => {
-                // Handle successful uploads on complete
+               
                 try {
                   const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                  console.log('File available at', downloadURL);
                   resolve(downloadURL); // Resolve the promise with the download URL
                 } catch (error) {
                   reject(error); // Reject the promise if there's an error
@@ -279,19 +277,24 @@ return <Text>No access to gallery</Text>
         // Wait for all image uploads to complete
         const uploadedImageURLs = await Promise.all(storagePromises);
   
-        // Now you can use the uploadedImageURLs array to store the URLs in Firestore or perform other operations
+        // After uploading images and gettin the download url, we can use it below
         
-        setImageDownload(uploadedImageURLs);
-        await setDoc(doc(db, 'posts','all',category,postID), 
+        await setDoc(doc(db, 'posts',postID), 
           {
+            postID,
+            category,
             author: name,
             content:story,
-            postImg:imageDownload,
+            postImg:uploadedImageURLs,
             createdAt: serverTimestamp(),
             title,
             price,
             userID: user.uid
-          }, {merge:true});
+          }, {merge:true},
+         
+);
+
+
     
           setErrorOutput({
             title: null,
@@ -303,11 +306,19 @@ return <Text>No access to gallery</Text>
           });
         
       }
-    
+      navigation.navigate('Home')
+    setLoading(false)
+    setName('')
+    setTitle('')
+    setPrice('')
+    setStory('')
+    setCategory('')
+    setImageUri(null)
+    setImage([])
     } catch (e) {
       
-      console.log("Error validate " + e.message);
-    
+      Alert.alert("Error  ",  e.message);
+    setLoading(false)
 
     }
   };
@@ -320,8 +331,8 @@ return <Text>No access to gallery</Text>
 
       <Box  >
         <Center width='90%' alignSelf='center' pb={40}>
-        <FormControl mb="-3" isInvalid={errorOutput && errorOutput.category}>
-          <FormControl.Label></FormControl.Label>
+        <FormControl mb="-3"mt={5} isInvalid={errorOutput && errorOutput.category} >
+          
           <DropDownCat onSelectCategory={handleCategorySelection}/>
           {errorOutput && errorOutput.category && (
                       <Text fontSize={9} mb="3.5" mt="0.5" color="error.600">
@@ -340,14 +351,16 @@ return <Text>No access to gallery</Text>
        zIndex= {999}
        paddingHorizontal= {8}
        >Title</Text></FormControl.Label>
-        <Input mt='-2' mb='3' zIndex='-999' rounded="md"  type ='text' borderColor='#ccc' keyboardType='default' _input={{bg:'#fff'}} _focus={{
+        <Input mt='-2' mb='3' zIndex='-999' rounded="md"  type ='text'  borderWidth='0.4'
+                      borderColor="#71797E" keyboardType='default' _input={{bg:'#fff', selectionColor:'#7FFFD4'}} _focus={{
       
       borderColor: "#158e73",
       borderWidth: "1px"
     }}  
-    
+    maxLength={75}
+    numberOfLines={2}
     value={title}
-    placeholder='Title'
+    placeholder='I Will do....'
     onChangeText={(text) => {
     
         setTitle(text);
@@ -369,12 +382,13 @@ return <Text>No access to gallery</Text>
        top= {-15}
        zIndex= {9999}
        paddingHorizontal= {8}>Price</Text></FormControl.Label>
-    <Input  mt='-2' mb='3' rounded="md" type ='text' keyboardType='decimal-pad' borderColor='#ccc'zIndex= {-9999} _input={{bg:'#fff'}} _focus={{
+    <Input  mt='-2' mb='3' rounded="md" type ='text' keyboardType='decimal-pad'  borderWidth='0.4'
+                      borderColor="#71797E"zIndex= {-9999} _input={{bg:'#fff', selectionColor:'#7FFFD4'}} _focus={{
       borderColor: "#158e73",
       borderWidth: "1px",
        }}  
       value={price}
-      placeholder='price'
+      placeholder='₦20000'
       onChangeText={(text) => setPrice(text)}
       />
        {errorOutput && errorOutput.price && (
@@ -384,11 +398,7 @@ return <Text>No access to gallery</Text>
                     )}
   </FormControl>
 
-  {/* <FormControl mt='1' rounded="md">
-  <FormControl.Label  mb='-0.5'><Text color='text.600' fontSize='11'>Location</Text></FormControl.Label>
-  <DropDownMenu onSelectState={handleStateSelection} location={location} onSelectCapital={handleCapitalSelection} />
-   
-  </FormControl> */}
+  
   <FormControl alignItems='center' isInvalid={errorOutput && errorOutput.imageUri}>
     <FormControl.HelperText><Text fontSize='15' color='text.600' mb='5'>Upload Images of Your recent job</Text></FormControl.HelperText>
    <TouchableOpacity onPress={pickImage}> 
@@ -462,13 +472,16 @@ return <Text>No access to gallery</Text>
        top= {-3}
        zIndex= {9999}
        paddingHorizontal= {8}>Short Story</Text></FormControl.Label>
-  <TextArea mt='-4'  rounded="md" type ='text'  borderColor='#ccc' zIndex= {-9999}_input={{bg:'#fff'}} _focus={{
+  <TextArea mt='-4'  rounded="md" type ='text'   borderWidth='0.4'
+                      borderColor="#71797E" zIndex= {-9999}_input={{bg:'#fff', selectionColor:'#7FFFD4'}} _focus={{
       borderColor: "#158e73",
       borderWidth: "1px"
-       }}  
+       }} 
+       InputRightElement={<Text >  { story ? maxLength - story.length:maxLength}</Text>} 
       value={story}
-      // maxLength={maxLength}
-      placeholder='story'
+       maxLength={maxLength}
+      placeholder='Write a short description of the image(s)'
+      
       onChangeText={(text) => {
     
         setStory(text);
@@ -481,9 +494,48 @@ return <Text>No access to gallery</Text>
                     )}
   </FormControl>
   
-      <Button rounded="md"  mt="5" bg='#158e73' colorScheme='emerald' width='100%' onPress={onSubmit}>
-        Post
-      </Button>
+   <LoadState
+          style={{ width: '30%',  aspectRatio: 1, marginTop:-15 }}
+          showAnimation={loading}
+          title= {loadingText }
+          textStyle={styles.text}
+          source={require('../assets/animation/loaded.json')}
+          colorFilters={
+            [
+              {
+                keypath: "Shape Layer 1",
+                color: "#2C9981",
+              },
+              {
+                keypath: "Shape Layer 2",
+                color: "#158e73",
+              },
+              {
+                keypath: "Shape Layer 3",
+                color: "#0E624F",
+              },
+              {
+                keypath: "Shape Layer 4",
+                color: "#44A58F",
+              },
+              {
+                keypath: "Shape Layer 6",
+                color: "#2ADFB7",
+              },
+              {
+                keypath: "Shape Layer 5",
+                color: "#5BB09D",
+              },
+            ]
+          }>
+
+          <Button rounded="md"  mt="24px" bg='#158e73' colorScheme='emerald' width='100%' onPress={onSubmit}>
+          Post
+        </Button>  
+          </LoadState>
+ 
+         
+  
       </Center>
           </Box>
           </ ScrollView>
@@ -496,3 +548,11 @@ return <Text>No access to gallery</Text>
 
 
 export default Post;
+const styles = StyleSheet.create({
+  text: {
+   fontSize:14,
+  marginTop:-25,
+  // fontFamily:'Poppins-Regular'
+
+  }
+});

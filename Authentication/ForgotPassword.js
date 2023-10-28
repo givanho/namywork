@@ -146,7 +146,9 @@ const styles = StyleSheet.create({
     text: {
      fontSize:14,
     marginTop:-35,
-    fontFamily:'Poppins-Regular'
+    // fontFamily:'Poppins-Regular'
+    
+
   
     }
   });
