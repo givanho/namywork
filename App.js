@@ -1,28 +1,29 @@
 // import 'react-native-gesture-handler';
-import React, {useCallback}from "react";
+import React, {useCallback, useEffect, useState}from "react";
 // import { StatusBar } from 'react-native'; 
 import { StatusBar } from 'expo-status-bar';
-import {NativeBaseProvider, } from "native-base";
+ import {NativeBaseProvider, } from "native-base";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Animated, StyleSheet } from "react-native";
+import { Animated, StyleSheet , View} from "react-native";
 import SignIn from "./Authentication/SignIn";
 import BottomTabNavigator from "./Navigation/BottomTabs";
 import { AuthContextProvider } from "./context/context";
 import SignUp from './Authentication/SignUp';
 import MessageMenu from "./Screens/MessageMenu";
-import Theme from "./context/Theme";
+// import Theme from "./context/Theme";
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import SinglePost from "./Screens/SinglePost";
 import Search from "./Screens/Search";
 import { Ionicons } from '@expo/vector-icons';
+import { getItem } from "./Helpers/Async";
 import {
-
   Input,
 } from "native-base";
 import ForgotPassword from "./Authentication/ForgotPassword";
-SplashScreen.preventAutoHideAsync();
+import OnBoard from "./Screens/OnBoard";
+//  SplashScreen.preventAutoHideAsync();
 
 
 const Nav = createStackNavigator();
@@ -66,52 +67,86 @@ const forSlide = ({ current, next, inverted, layouts: { screen } }) => {
 };
 
 export default function App({navigation}) {
-  
-  const [fontsLoaded] = useFonts({
-    // "Adobe-Regular": require('./assets/fonts/adobe/AdobeCleanRegular.otf'),
-    // "Adobe-Bold": require('./assets/fonts/adobe/AdobeCleanBold.otf'),
-    "Blask-Sans": require('./assets/fonts/sans/blacksansblackwebfont.otf'),
-    "Blask-Light": require('./assets/fonts/sans/blacksanscondensedmediumwebfont.otf'),
-    "Poppins-Bold": require('./assets/fonts/poppins/Poppins-Bold.ttf'),
-   "Poppins-light": require('./assets/fonts/poppins/Poppins-Light.ttf'),
-    "Poppins-Regular": require('./assets/fonts/poppins/Poppins-Regular.ttf'),
+  const [showOnboarding, setShowOnboarding] = useState(null);
+  // const [fontsLoaded] = useFonts({
+   
+  //   "Blask-Sans": require('./assets/fonts/sans/blacksansblackwebfont.otf'),
+  //   "Blask-Light": require('./assets/fonts/sans/blacksanscondensedmediumwebfont.otf'),
+  //   "Poppins-Bold": require('./assets/fonts/poppins/Poppins-Bold.ttf'),
+  //  "Poppins-light": require('./assets/fonts/poppins/Poppins-Light.ttf'),
+  //   "Poppins-Regular": require('./assets/fonts/poppins/Poppins-Regular.ttf'),
 
-  });
+  // });
+  useEffect(()=>{
+    
+    checkIfAlreadyOnboarded();
 
-  const onLayoutRootView = useCallback(async() =>{
-    if(fontsLoaded){
-      await SplashScreen.hideAsync();
+  },[showOnboarding ])
+
+  const checkIfAlreadyOnboarded = async ()=>{
+    let onboarded = await getItem('onboarded');
+    if(onboarded==1){
+      // hide onboarding
+      setShowOnboarding(false);
+    }else{
+      // show onboarding
+      setShowOnboarding(true);
     }
-  }, [fontsLoaded]);
-  if(!fontsLoaded){
-    return null;
   }
-  onLayoutRootView()
 
 
 
+  // const onLayoutRootView = useCallback(async () => {
+  //   if (fontsLoaded) {
+  //     await SplashScreen.hideAsync();
+  //   }
+  //   else{
+  //     await SplashScreen.hideAsync(); 
+  //   }
+  // }, [fontsLoaded]);
+
+  // if (!fontsLoaded) {
+  //   return null;
+  // }
+
+  
+ if(showOnboarding){
   return (
+
+<View style={{height:'100%',flex:1, width:'100%'}}>
     <NavigationContainer >
 <AuthContextProvider>
-       <NativeBaseProvider theme={Theme} >
+       <NativeBaseProvider  >
        <StatusBar style='light' hidden={true} />
-       <Nav.Navigator  options={{
+       <Nav.Navigator initialRouteName="OnBoard" options={{
         headerShown: false,
-     
+        statusBarTranslucent:true,
+        statusBarHidden:true
 
        }}>
-       
+        <Nav.Screen name='OnBoard' component ={OnBoard}
+         options={{  
+          headerShown:false,
+          cardStyleInterpolator: forSlide ,
+          
+       }}/> 
+
         <Nav.Screen  name='BottomTabs' component={BottomTabNavigator} 
          options={{  
            cardStyleInterpolator: forSlide ,
-         headerShown: false,}}/>
+         headerShown: false,
+         
+        }
+         }
+         />
         <Nav.Screen name='SignIn' component ={SignIn}
          options={{  
           headerShown:true,
           headerTitle:'Sign In',
         headerTintColor:'#36454F',
           headerTitleAlign:'center',
-          headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
           headerStyle:{
             borderWidth:StyleSheet.hairlineWidth,
             borderColor:'#71797E',
@@ -131,7 +166,8 @@ export default function App({navigation}) {
           headerTitle:'Forgot Password?',
         headerTintColor:'#36454F',
           headerTitleAlign:'center',
-          headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
           headerStyle:{
             borderWidth:StyleSheet.hairlineWidth,
             borderColor:'#71797E',
@@ -150,7 +186,9 @@ export default function App({navigation}) {
         headerTitle:'Create Account',
         headerTintColor:'#36454F',
           headerTitleAlign:'center',
-          headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
           headerShown:'true',
           headerStyle:{
             borderWidth:StyleSheet.hairlineWidth,
@@ -171,7 +209,9 @@ export default function App({navigation}) {
         
           headerTintColor:'#36454F',
             headerTitleAlign:'center',
-            headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+            // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+          headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
             headerShown:'true',
             headerStatusBarHeight:10,
             headerStyle:{
@@ -189,7 +229,9 @@ export default function App({navigation}) {
             headerShown:true,
             headerTintColor:'#36454F',
             headerTitleAlign:'center',
-            headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+            // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+          headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
             headerStyle:{
             borderWidth:StyleSheet.hairlineWidth,
             borderColor:'#71797E',
@@ -225,16 +267,190 @@ export default function App({navigation}) {
               shadowOpacity: 1,
               },
      }}/>
+  </Nav.Navigator>
+     
+     </NativeBaseProvider>
+     </AuthContextProvider>
+     </NavigationContainer>
+    </View>
+   );
+}
+else{
+  return (
+
+<View style={{height:'100%', flex:1,width:'100%'}} >  
+ <NavigationContainer >
+<AuthContextProvider>
+       <NativeBaseProvider >
+       <StatusBar style='dark' hidden={true} />
+       <Nav.Navigator initialRouteName="BottomTabs" options={{
+        headerShown: false,
+        statusBarTranslucent:true,
+        statusBarHidden:true
+
+       }}>
+  
+
+ <Nav.Screen  name='BottomTabs' component={BottomTabNavigator} 
+  options={{  
+    cardStyleInterpolator: forSlide ,
+  headerShown: false,
+  statusBarTranslucent:true,
+  statusBarHidden:true,}}/>
+ <Nav.Screen name='SignIn' component ={SignIn}
+  options={{  
+   headerShown:true,
+   statusBarTranslucent:true,
+   statusBarHidden:true,
+   
+   headerTitle:'Sign In',
+ headerTintColor:'#36454F',
+   headerTitleAlign:'center',
+  //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+  headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
+   headerStyle:{
+     borderWidth:StyleSheet.hairlineWidth,
+     borderColor:'#71797E',
+ 
+     elevation: 15,
+     shadowOpacity: 1,
+    
+   },
+   headerShadowVisible:true,
+   headerStatusBarHeight:10,
+   cardStyleInterpolator: forSlide ,
+}}/> 
+
+<Nav.Screen name='ForgotPassword' component ={ForgotPassword}
+  options={{  
+   headerShown:true,
+   headerTitle:'Forgot Password?',
+ headerTintColor:'#36454F',
+   headerTitleAlign:'center',
+  //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+  headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
+   headerStyle:{
+     borderWidth:StyleSheet.hairlineWidth,
+     borderColor:'#71797E',
+ 
+     elevation: 15,
+     shadowOpacity: 1,
+    
+   },
+   headerShadowVisible:true,
+   headerStatusBarHeight:10,
+   cardStyleInterpolator: forSlide ,
+}}/> 
+
+<Nav.Screen name='SignUp' component={SignUp}
+options={{  
+ headerTitle:'Create Account',
+ headerTintColor:'#36454F',
+   headerTitleAlign:'center',
+  //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+  headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
+   headerShown:'true',
+   headerStyle:{
+     borderWidth:StyleSheet.hairlineWidth,
+     borderColor:'#71797E',
+ 
+     elevation: 15,
+     shadowOpacity: 1,
+    
+   },
+   headerShadowVisible:true,
+   headerStatusBarHeight:10,
+ 
+ cardStyleInterpolator: forSlide ,
+}}/>
+<Nav.Screen name='Details' component={SinglePost}
+options={{  
+ cardStyleInterpolator: forSlide ,
+ 
+   headerTintColor:'#36454F',
+     headerTitleAlign:'center',
+    //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
+    headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
+     headerShown:'true',
+     headerStatusBarHeight:10,
+     headerStyle:{
+       borderWidth:StyleSheet.hairlineWidth,
+       borderColor:'#71797E',
+       elevation: 1,
+       shadowOpacity: 1,
+       },
+}}/>
+
+<Nav.Screen name="MessageMenu" component={MessageMenu} 
+    options={({route}) =>({
+     headerStatusBarHeight:10,
+     headerTitle: route.params.receiverNames||route.params.fname,
+     headerShown:true,
+     statusBarTranslucent:true,
+     statusBarHidden:true,
+     headerTintColor:'#36454F',
+     headerTitleAlign:'center',
+    //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+    headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+
+     headerStyle:{
+     borderWidth:StyleSheet.hairlineWidth,
+     borderColor:'#71797E',
+     elevation: 1,
+     shadowOpacity: 1,
+     },
+     headerShadowVisible:true,
+     
+    })}
+    />
+
+<Nav.Screen name='Search' component={Search}
+options={{  
+ cardStyleInterpolator: forSlide ,
+ headerRight:() =>( <Input placeholder="Search" variant="underlined" width="100%"  alignSelf="center"
+  borderRadius="5" mr="15"
+ InputLeftElement={<Ionicons name='search-circle' color='#36454F' size={20}/>} 
+
+
+
+ 
+ />),
+ headerTitle:'',
+   headerTintColor:'#36454F',
+     headerTitleAlign:'left',
+     headerTitleStyle:{marginRight:-20},
+     headerShown:'true',
+     headerStatusBarHeight:10,
+     headerStyle:{
+       borderWidth:StyleSheet.hairlineWidth,
+       borderColor:'#71797E',
+       elevation: 1,
+       shadowOpacity: 1,
+       },
+}}/>
+<Nav.Screen name='OnBoard' component ={OnBoard}
+  options={{  
+   headerShown:false,
+   cardStyleInterpolator: forSlide ,
+}}/> 
+  </Nav.Navigator>
+     
+     </NativeBaseProvider>
+     </AuthContextProvider>
+     </NavigationContainer>
+     </View>
+ 
+   );
+}
+
       
       
        
-       </Nav.Navigator>
      
-    </NativeBaseProvider>
-    </AuthContextProvider>
-    </NavigationContainer>
-   
-  );
 }
 
 
