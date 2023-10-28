@@ -6,14 +6,24 @@ import {
     Dimensions,
     Animated,
     Easing,
+    TouchableOpacity,
   } from 'react-native';
-  import React from 'react';
-import { shadow } from 'react-native-paper';
+  import { Modal } from 'react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
+  import React,{useState} from 'react';
+import { Ionicons } from '@expo/vector-icons';
   
   const {width, height} = Dimensions.get('screen');
   
-  const SlideItem = ({item}) => {
+  const SlideItem = ({item, navigation}) => {
+    const [isModalVisible, setModalVisible] = useState(false);
+
     const translateYImage = new Animated.Value(40);
+    const handleImagePress = () => {
+      // Open modal or perform any action you want when the image is pressed
+      // For example, you can set a state to show the modal
+      setModalVisible(true);
+    };
   
     Animated.timing(translateYImage, {
       toValue: 0,
@@ -21,9 +31,22 @@ import { shadow } from 'react-native-paper';
       useNativeDriver: true,
       easing: Easing.bounce,
     }).start();
+
+ const renderArrow =() =>{
+ return(
+   
+    
+    <Ionicons name='close-sharp' color="#fff" size={42} onPress={() => setModalVisible(false)}
+   />
+   
+   
+ )
+ } 
+ 
   
-    return (
+    return( 
       <View style={styles.container}>
+        <TouchableOpacity onPress={handleImagePress}>
         <Animated.Image
           source={{ uri: item.imageUrl }}
           resizeMode="cover"
@@ -38,8 +61,17 @@ import { shadow } from 'react-native-paper';
             },
           ]}
         />
-  
-        
+  </TouchableOpacity>
+  <Modal visible={isModalVisible} transparent={true} 
+  saveToLocalByLongPress={true} 
+     onRequestClose={() => setModalVisible(false)}>
+      
+  <ImageViewer imageUrls={[{ url: item.imageUrl }]} onCancel={() => setModalVisible(false)} 
+  renderHeader={renderArrow}
+ 
+  />
+      </Modal>
+
       </View>
     );
   };
@@ -60,6 +92,7 @@ import { shadow } from 'react-native-paper';
                 resizeMode:"contain",
                 borderRadius:20,
                 borderWidth:1,
+                
                 borderColor:'#ccc',
                  aspectRatio: 3 / 2,
      
