@@ -2,10 +2,9 @@ import React,{useState, useEffect} from 'react'
 import { FlatList } from 'react-native';
 import { Box, Image,View,Text, VStack,HStack,Heading, ScrollView} from 'native-base'
 import { UserAuth } from '../context/context'
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { collection, query, where , onSnapshot } from "firebase/firestore";
 import { db } from '../firebase';
-
+import LoadState from '../Components/LoadState';
 import { Divider } from 'native-base';
 const MyAds = () => {
   const [adList, setAdList] = useState([]);
@@ -42,6 +41,15 @@ useEffect(() => {
 }, [ user])
 
   return (
+    <>
+     {adList.length ===0 ?  
+          <LoadState
+          style={{ width: '100%',  aspectRatio: 1, marginTop:5 }}
+          showAnimation={true}
+          title={'No Services yet.'}
+          source={require('../assets/animation/astro.json')}>
+          </LoadState>
+  :   
     <FlatList
   data={adList}
   keyExtractor={(item) => item.id}
@@ -65,12 +73,43 @@ useEffect(() => {
 {item?item.createdAt.toDate().toDateString(): 'waiting...'} </Text>
 <Text fontSize='15'  ml={4} isTruncated maxW="300" w="80%" noOfLines={3} > 
 {item?item.title: 'waiting...'}</Text>
-  <Box flexDirection="row"  justifyContent="space-between" m={4} >
- <Box backgroundColor='#d3f8f0'  height='4' borderRadius='4' > 
-  <Text fontSize='11'color='#000' pl={1} pr={1}>  {item?item.category: 'waiting...'}</Text> 
-  </Box> 
-  <Heading fontSize='18' >₦ {item?item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","): 'waiting...'} </Heading>
-  </Box>
+<Box
+                      flexDirection="row"
+                      justifyContent="space-between"
+                      mx={3}
+                      my={2}
+                    >
+                      <Box
+                        backgroundColor="emerald.300"
+                        borderRadius="4"
+                        alignSelf="center"
+                        isTruncated
+                        maxW="300"
+                        w="50%"
+                      >
+                        <Text
+                          fontSize="11"
+                          color="#000"
+                          isTruncated
+                          maxW="300"
+                          w="100%"
+                          pl={1}
+                          pr={1}
+                        >
+                          {" "}
+                          {item ? item.category : "waiting..."}
+                        </Text>
+                      </Box>
+
+                      <Heading fontSize="17">
+                        ₦{" "}
+                        {item
+                          ? item.price
+                              .toString()
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          : "waiting..."}{" "}
+                      </Heading>
+                    </Box>
   
 </View>
 
@@ -95,12 +134,10 @@ useEffect(() => {
   </VStack>
   </ScrollView>
   )}
-/>
+/>}
+</>
 
-    // <ScrollView   h='100%'bg="#eff3f6" showsVerticalScrollIndicator={false} pt={3}>
-      
-        
-    // </ScrollView>
+   
     
   )
 }

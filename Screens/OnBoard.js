@@ -132,16 +132,21 @@ const OnBoard = () => {
 
 const styles = StyleSheet.create({
     heading: {
-     fontFamily:'Poppins-Bold',
-      color:'#158e73'
+    //  fontFamily:'Poppins-Bold',
+      color:'#158e73',
+      fontWeight:'700'
     },
     para: {
-      fontFamily:'Poppins-Regular'
+      // fontFamily:'Poppins-Regular'
+      fontWeight:'300'
+
     },
     skip: {
-        fontFamily:'Poppins-Bold',
+        // fontFamily:'Poppins-Bold',
         color:'#36454F',
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+      fontWeight:'700'
+
       },
     
    

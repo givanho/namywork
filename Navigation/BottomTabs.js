@@ -1,34 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { UserAuth } from '../context/context'
 
-import {Image, NativeBaseProvider,IconButton,Icon, Text, Center,
-   Box,AspectRatio, Container ,Button,Input,  Avatar} from "native-base";
+import { Text, 
+   Box, Avatar,} from "native-base";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Favorite from "../bottom tabs/Favorite";
-import Home from "../bottom tabs/Home";
 import Post from "../bottom tabs/Post";
 import Messages from "../bottom tabs/Messages";
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {Feather} from '@expo/vector-icons';
-import { Animated , View , StyleSheet} from "react-native";
+import {StyleSheet} from "react-native";
 import ProfileRoutes from "./ProfileRoutes";
 import SignIn from "../Authentication/SignIn";
 import HomeStack from "./HomeStack";
-import { collection, query, where ,doc, setDoc, onSnapshot, } from "firebase/firestore";
-import { db , storage} from '../firebase'
-import { ref , uploadBytesResumable, getDownloadURL,} from 'firebase/storage';
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { collection, query, where , onSnapshot, } from "firebase/firestore";
+import { db , } from '../firebase'
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator({navigation}) {
 
  const {user} =UserAuth()
 const [imgSrc, setImgSrc] = useState('')
-const [data, setData] = useState(null)
  
     useEffect(() => {
-      if (user) {
+      if (user?.uid  ) {
         //When the query snapshot changes (new data is added), 
        // the onSnapshot callback function is called. If the query snapshot is not empty, 
        // we update the state with the data from the first document in the snapshot.
@@ -41,7 +37,6 @@ const [data, setData] = useState(null)
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
           if (!querySnapshot.empty) {
             const doc = querySnapshot.docs[0];
-            setData(doc.data());
   
             if (doc.data().userImg) {
               setImgSrc({ uri: doc.data().userImg });
@@ -55,6 +50,9 @@ const [data, setData] = useState(null)
         return () => {
           unsubscribe();
         };
+      }
+      else{
+        return
       }
     }, [user])
     
@@ -86,6 +84,7 @@ detachInactiveScreens="true"
       <Tab.Screen name="Home" component={HomeStack} 
      
     options={{
+      
       headerShown:false,
       tabBarIcon:(props) => (
            <Ionicons name='ios-home-outline' type= "Octicons"size={25} color={props.color} />
@@ -107,7 +106,8 @@ detachInactiveScreens="true"
   headerTitle:'My favorites',
   headerShown:true,
   headerTitleAlign:'center',
-    headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold' , color:'#36454F'},
+    headerTitleStyle:{fontSize:19, fontWeight:'700' , color:'#36454F'},
+    // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold' , color:'#36454F'},
   headerStyle:{
     borderWidth:StyleSheet.hairlineWidth,
     borderColor:'#71797E',
@@ -162,7 +162,9 @@ detachInactiveScreens="true"
  ),
  headerTitleAlign:'center',
  headerTitle:'Create AD', 
- headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+//  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+ headerTitleStyle:{fontSize:19, fontWeight:'700' , color:'#36454F'},
+
  headerShown:'true',
  headerStatusBarHeight:10,
  
@@ -178,7 +180,9 @@ detachInactiveScreens="true"
       headerShown:true,
       headerTintColor:'#36454F',
       headerTitleAlign:'center',
-      headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+      // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
+    headerTitleStyle:{fontSize:19, fontWeight:'700' , color:'#36454F'},
+
       headerStyle:{
         borderWidth:StyleSheet.hairlineWidth,
         borderColor:'#71797E',

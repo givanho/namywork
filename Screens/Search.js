@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React , {useEffect, useState} from 'react'
-import { FlatList, TouchableOpacity , TouchableWithoutFeedback} from 'react-native';
+import { FlatList,  TouchableWithoutFeedback} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
     Box,
@@ -9,7 +9,6 @@ import {
     Text,
     HStack,
     VStack,
-    Divider,
     Heading,
     Input,
   } from "native-base";
@@ -29,21 +28,29 @@ const Search = ({navigation, route}) => {
         setFilteredDataSource(adList);
         
        }, [])
+       useEffect(() => {
+        const setHeaderOptions = () => {
+          navigation.setOptions({
+            headerRight: () => (
+                <Input placeholder="Search Services" variant="underlined" width="100%" borderRadius="5" 
+                borderBottomColor='#158e73' alignSelf="center" mr="15" fontSize='16'
+                InputRightElement={<Ionicons name='search' color='#36454F' size={32}/>} 
+                
+                onChangeText={(text) => searchFilterFunction(text)}
+                 onClear={(text) => searchFilterFunction('')}
+              
+                 value={search}
+                />
+            ),
+          });  
+         }
+        // Call the function to set options
+        setHeaderOptions();
+      }, [navigation])
+    
        
        
-       navigation.setOptions({
-        headerRight: () => (
-            <Input placeholder="Search Services" variant="underlined" width="100%" borderRadius="5" 
-            borderBottomColor='#158e73' alignSelf="center" mr="15" fontSize='16'
-            InputRightElement={<Ionicons name='search' color='#36454F' size={32}/>} 
-            
-            onChangeText={(text) => searchFilterFunction(text)}
-             onClear={(text) => searchFilterFunction('')}
-          
-             value={search}
-            />
-        ),
-      });
+      
           
        
        
@@ -57,8 +64,15 @@ const Search = ({navigation, route}) => {
                const itemData = item.title
                  ? item.title.toUpperCase()
                  : ''.toUpperCase();
+                 const itemDataCategory = item.category
+                 ? item.category.toUpperCase()
+                 : ''.toUpperCase();
                const textData = text.toUpperCase();
-               return itemData.indexOf(textData) > -1;
+               return (
+                itemData.indexOf(textData) > -1 ||
+                itemDataCategory.indexOf(textData) > -1
+              )
+              
              });
              setFilteredDataSource(newData);
              setSearch(text);

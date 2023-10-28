@@ -6,7 +6,7 @@ import { Box,  Center ,Text, Input,Button,
    import { UserAuth } from '../context/context'
 import * as ImagePicker from 'expo-image-picker' 
 import {TouchableOpacity} from 'react-native';
-import { collection, query, where ,doc, setDoc, onSnapshot, } from "firebase/firestore";
+import { collection, query, where ,doc, setDoc, onSnapshot } from "firebase/firestore";
 import { db , storage} from '../firebase';
 import { ref , uploadBytesResumable, getDownloadURL,} from 'firebase/storage';
 import DropDownMenu from '../Components/DropDownMenu';
@@ -20,10 +20,10 @@ const EditScreen = ({navigation, route}) => {
     const [number, setNumber]= useState(value)
     const [skill, setSkill]= useState(skillRoute)
     const [about, setAbout]= useState(aboutRoute)
-    const [location, setLocation]= useState(locationRoute)
+    const [location, setLocation]= useState(locationRoute?locationRoute:'State, Capital')
     const [userImgSrc, setUserImgSrc] = useState(null);
     const [image, setImage] = useState(null)
-    const [imgSrc, setImgSrc] = useState(require("../assets/avatar.png"));
+    const [imgSrc, setImgSrc] = useState('');
 
     const [selectedState, setSelectedState] = useState(null);
   const [selectedCapital, setSelectedCapital] = useState(null);
@@ -96,7 +96,7 @@ else{
       //When the query snapshot changes (new data is added), 
      // the onSnapshot callback function is called. If the query snapshot is not empty, 
      // we update the state with the data from the first document in the snapshot.
-
+     
       const q = query(collection(db, 'users'), where('userID', '==', user.uid));
 
       //The unsubscribe function returned by onSnapshot is used to 
@@ -119,6 +119,8 @@ else{
       };
     }
   }, [image]);
+
+
 
 
 useEffect(() => {
@@ -148,7 +150,7 @@ useEffect(() => {
   else{
     setLocation(locationRoute)
   }
-}, [selectedCapital, selectedState])
+}, [locationRoute, selectedCapital, selectedState])
 
 
 
@@ -163,9 +165,8 @@ const pickImage = async () => {
     });
 
     
-     console.log('user clicked council')
+     console.log('user clicked cancel')
     if (!result.canceled) {
-      const email = user.email; // Replace with actual user ID
       setUserImgSrc(result.assets[0].uri)
     // await imageUpload(result.assets[0].uri);
     console.log('userimagesource: =>' + userImgSrc)
@@ -215,14 +216,12 @@ const pickImage = async () => {
   </Box>
   </TouchableOpacity>
   </HStack>
-{/* <Box alignSelf='center' pb={5}>
-<Image  source={require('../assets/icon.png')}
-           alt='headerImage' h='130' w='130' resizeMode="contain"/>
-           </Box> */}
+
            
       <FormControl mt='4' isRequired >
       <FormControl.Label ><Text color='text.600' fontSize='11'>Phone Number</Text></FormControl.Label>
-        <Input mt='-2' mb='3' zIndex='-999' rounded="md"  type ='text' borderColor='#e5e6ea' keyboardType='number-pad' _input={{bg:'#F8FAFB'}} _focus={{
+        <Input mt='-2' mb='3' zIndex='-999' rounded="md"  type ='text'  borderWidth='0.4'
+                      borderColor="#71797E" keyboardType='number-pad' _input={{bg:'#F8FAFB'}} _focus={{
       
       borderColor: "#158e73",
       borderWidth: "1px"
@@ -240,7 +239,8 @@ const pickImage = async () => {
 
       <FormControl isRequired >
       <FormControl.Label><Text color='text.600' fontSize='11'>Handwork</Text></FormControl.Label>
-    <Input  mt='-2' mb='3' rounded="md" type ='text' borderColor='#e5e6ea' _input={{bg:'#F8FAFB'}} _focus={{
+    <Input  mt='-2' mb='3' rounded="md" type ='text'  borderWidth='0.4'
+                      borderColor="#71797E" _input={{bg:'#F8FAFB' , selectionColor:'#7FFFD4'}} _focus={{
       borderColor: "#158e73",
       borderWidth: "1px"
        }}  
@@ -250,33 +250,28 @@ const pickImage = async () => {
       />
   </FormControl>
 
-  <FormControl mt='1' rounded="md">
+  <FormControl mt='1' rounded="md" >
   <FormControl.Label  mb='-0.5'><Text color='text.600' fontSize='11'>Location</Text></FormControl.Label>
-  <DropDownMenu onSelectState={handleStateSelection} location={location} onSelectCapital={handleCapitalSelection} />
+  <DropDownMenu location={location} onSelectState={handleStateSelection}   onSelectCapital={handleCapitalSelection} />
    
   </FormControl>
   
   <FormControl mt='4' importantForAccessibility='About'>
     <FormControl.Label > <Text color='text.600' fontSize='11'>About Me</Text></FormControl.Label>
-  <TextArea mt='-2'  rounded="md" type ='text' InputRightElement={<Text>  {maxLength - about.length}</Text>}  borderColor='#e5e6ea'_input={{bg:'#F8FAFB'}} _focus={{
+  <TextArea mt='-2'  rounded="md" type ='text' InputRightElement={<Text >  { about ? maxLength - about.length:maxLength}</Text>}
+    borderWidth='0.4'
+    borderColor="#71797E"_input={{bg:'#F8FAFB', selectionColor:'#7FFFD4'}} _focus={{
       borderColor: "#158e73",
       borderWidth: "1px"
        }}  
       value={about}
       maxLength={maxLength}
       placeholder={data ? data.about|| 'who you be':'tell us small thing about u'}
-      onChangeText={(about) => {if (about.length <= maxLength) {
+      onChangeText={(about) => {if (about? about.length:200 <= maxLength) {
         setAbout(about);
       }
       }} />
-    {/* <Input mt='4' rounded="md" type ='text'   borderColor='#e5e6ea'_input={{bg:'#F8FAFB'}} _focus={{
-      borderColor: "#158e73",
-      borderWidth: "1px"
-       }}  
-      value={about}
-      placeholder={data ? data.about|| 'who you be':'tell us small thing about u'}
-      onChangeText={(about) => setAbout(about)}
-      /> */}
+    
   </FormControl>
   
       <Button rounded="md"  mt="5" bg='#158e73' colorScheme='emerald' onPress={imageUpload}>

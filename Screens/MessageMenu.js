@@ -1,5 +1,5 @@
 
-import { View, StyleSheet, } from 'react-native'
+import { View, StyleSheet, Alert, } from 'react-native'
 import React, {useEffect, useCallback, useState, useLayoutEffect} from 'react'
 import { GiftedChat, Send, Bubble, InputToolbar,  } from 'react-native-gifted-chat'
 import { Text } from 'native-base'
@@ -58,7 +58,6 @@ useEffect(() => {
 
   useLayoutEffect(() => {
     const chatRoomRef = collection(db, 'chats','messages',  chatRoomKeys||chatRoomKey);
-console.log('chatRoomKey', chatRoomKeys)
   const q = query(chatRoomRef, orderBy('createdAt', 'desc'));
 
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -73,7 +72,6 @@ console.log('chatRoomKey', chatRoomKeys)
   });
   return unsubscribe;
 }, [chatRoomKey, route]);
-console.log('received messages', messages)
 
 const chatRoomRef = collection(db, 'chats','messages', chatRoomKeys||chatRoomKey);
 
@@ -97,11 +95,9 @@ const onSend = useCallback((messages = []) => {
     chatID: chatRoomKey
     // other fields you want to add to the document
   })
-    .then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-    })
+    
     .catch((error) => {
-      console.error("Error adding document:", error);
+      Alert.alert("Error adding document:", error);
     });
 
 }, [ route]);
@@ -142,13 +138,13 @@ const renderBubble = (props) =>{
     }}
     textStyle={{
       right:{
-        fontFamily:'Poppins-Regular',
+        // fontFamily:'Poppins-Regular',
         color:'#000',
         fontSize: 14,
         lineHeight: 20,
       },
       left:{
-        fontFamily:'Poppins-Regular',
+        // fontFamily:'Poppins-Regular',
         color:'#000',
         fontSize: 14,
         lineHeight: 20,
@@ -180,7 +176,8 @@ const chatEmpty = () =>{
     <View style={{ flex:1, justifyContent:'center',
     alignItems:'center', transform: [{  rotateX:'180deg' }] }}>
      <Entypo name='new-message' size={72} color='#ccc'/>
-     <Text color='text.400'>Start new Chat</Text>
+     <Text color='text.400'>Start new Chat  {receiverImgs}</Text>
+     <Text>  {fprofilePic}  </Text>
     </View>
   )
 }
@@ -197,7 +194,7 @@ const chatEmpty = () =>{
           paddingBottom:30
         }}
         textInputStyle={{
-          fontFamily: 'Poppins-Regular',
+          // fontFamily: 'Poppins-Regular',
           
         }}
         renderChatEmpty={chatEmpty}
@@ -217,7 +214,7 @@ const chatEmpty = () =>{
           name:userName,
           receiverID:receiverIDs||fpostAuthorID,
         receiverName: receiverNames||fname,
-        receiverImg:receiverImgs||fprofilePic,
+        receiverImg:receiverImgs==null? '':receiverImgs||fprofilePic,
         chatRoom: chatRoomKeys||chatRoomKey,
           avatar: imgSrc
         }}
