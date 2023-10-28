@@ -5,6 +5,7 @@ import LoadState from "../Components/LoadState";
 import { collection, orderBy, query, onSnapshot,getDocs , where, } from "firebase/firestore";
 import { db } from "../firebase";
 import { UserAuth } from "../context/context";
+import { Ionicons } from "@expo/vector-icons";
 import {  useIsFocused } from '@react-navigation/native';
 import moment from "moment/moment";
 
@@ -162,14 +163,23 @@ const Messages = ({ navigation }) => {
         
           mt={5}  >
           <Box   >
-        <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' 
+        {/* <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' 
          mr='4'  source={ userID === item.user._id ? { uri: item.user.receiverImg }: { uri: item.user.avatar}}
-          
-         
-         
             >
-          avatar
-        </Avatar>
+          Avatar
+
+        </Avatar> */}
+        {(!item.user.receiverImg || !item.user.avatar) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="12" mr='4' rounded='full'>
+                            <Ionicons name="person" size={32} color="#fff" />
+                            </Box>
+ 
+) : (
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' mr='4' source={userID === item.user._id ? { uri: item.user.receiverImg } : { uri: item.user.avatar }}>
+    Avatar
+  </Avatar>
+)}
+        
           </Box>
         <Box >
           <Heading fontSize='14' >{userID === item.user._id ?item.user.receiverName : item.user.name}</Heading>
