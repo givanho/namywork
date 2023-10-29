@@ -19,8 +19,8 @@ return (
         headerShown:false,
         headerShadowVisible:false,
         elevation: 0,
-        statusBarTranslucent:true,
-        statusBarHidden:true
+        statusBarTranslucent:false,
+        statusBarHidden:false
         
        
      }}
@@ -40,8 +40,9 @@ return (
                
         headerStyle: {  backgroundColor:'#158e73',}, // adjust height here
         headerTitle:'',
-        statusBarTranslucent:true,
-        statusBarHidden:true,
+        statusBarTranslucent:false,
+        statusBarColor:'#158e73',
+        statusBarHidden:false,
       // Add a placeholder button without the `onPress` to avoid flicker
       headerRight:() =>( <TouchableOpacity style={{marginRight:15}}
         onPress={() => alert('This is a button!')}

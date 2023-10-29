@@ -227,11 +227,22 @@ setFavorited(totalLikes)
       
       {/* Dynamically render image if user has uploaded a pic or display default avatar  */}
     
-      <Avatar bg="gray.100" alignSelf="center" justifyContent='center'mt={2} size="2xl"
+      {/* <Avatar bg="gray.100" alignSelf="center" justifyContent='center'mt={2} size="2xl"
       source={userImgSrc}
       >
           avatar
-        </Avatar>
+        </Avatar> */}
+
+        {(!userImgSrc) ? (
+          <Box bg="gray.200" alignItems="center" alignSelf="center" justifyContent='center' size="32" mt={2} rounded='full'>
+                            <Ionicons name="person" size={46} color="#fff" />
+                            </Box>
+ 
+) : (
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="2xl" mt={2} alt='profile pic' source={userImgSrc}>
+    Avatar
+  </Avatar>
+)}
    
      </Box> 
 

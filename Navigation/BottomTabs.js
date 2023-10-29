@@ -111,7 +111,7 @@ detachInactiveScreens="true"
   headerStyle:{
     borderWidth:StyleSheet.hairlineWidth,
     borderColor:'#71797E',
-
+    borderTopWidth:0,
     elevation: 15,
     shadowOpacity: 1,
    
@@ -119,11 +119,16 @@ detachInactiveScreens="true"
   headerShadowVisible:true,
   headerRight: () => (
     <Box>
-    <Avatar bg="gray.100" alignSelf="center" justifyContent='center'mr={5} size="10"
-    source={imgSrc}
-    >
-        avatar
-      </Avatar>
+   {(!imgSrc) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="10" mr='4' rounded='full'>
+                            <Ionicons name="person" size={28} color="#fff" />
+                            </Box>
+ 
+) : (
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="10" alt='profile pic' mr='4'  source={imgSrc}>
+    Avatar
+  </Avatar>
+)}
 </Box>
   ),
 })}
@@ -143,6 +148,7 @@ detachInactiveScreens="true"
   headerStyle:{
     borderWidth:StyleSheet.hairlineWidth,
     borderColor:'#71797E',
+    borderTopWidth:0,
 
     elevation: 20,
     shadowOpacity: 1,
@@ -151,11 +157,16 @@ detachInactiveScreens="true"
  
  headerRight:()=>(
   <Box>
-      <Avatar bg="gray.100" alignSelf="center" justifyContent='center'mr={5} size="10"
-      source={imgSrc}
-      >
-          avatar
-        </Avatar>
+      {(!imgSrc) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="10" mr='4' rounded='full'>
+                            <Ionicons name="person" size={28} color="#fff" />
+                            </Box>
+ 
+) : (
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="10" alt='profile pic' mr='4'  source={imgSrc}>
+    Avatar
+  </Avatar>
+)}
   </Box>
 
 
@@ -180,12 +191,12 @@ detachInactiveScreens="true"
       headerShown:true,
       headerTintColor:'#36454F',
       headerTitleAlign:'center',
-      // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
     headerTitleStyle:{fontSize:19, fontWeight:'700' , color:'#36454F'},
 
       headerStyle:{
         borderWidth:StyleSheet.hairlineWidth,
         borderColor:'#71797E',
+        borderTopWidth:0,
 
       elevation: 1,
       shadowOpacity: 1,
@@ -196,11 +207,18 @@ detachInactiveScreens="true"
       ),
       headerRight:()=>(
         <Box>
-            <Avatar bg="gray.100" color='#000' alignSelf="center" justifyContent='center'mr={5} size="10"
-            source={imgSrc}
-            >
-              <Text >  avatar </Text>
-              </Avatar>
+{(!imgSrc) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="10" mr='4' rounded='full'>
+                            <Ionicons name="person" size={28} color="#fff" />
+                            </Box>
+ 
+) : (
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="10" alt='profile pic' mr='4'  source={imgSrc}>
+    Avatar
+  </Avatar>
+)}
+
+            
         </Box>
        ),
      })}

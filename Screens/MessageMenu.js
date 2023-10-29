@@ -2,7 +2,7 @@
 import { View, StyleSheet, Alert, } from 'react-native'
 import React, {useEffect, useCallback, useState, useLayoutEffect} from 'react'
 import { GiftedChat, Send, Bubble, InputToolbar,  } from 'react-native-gifted-chat'
-import { Text } from 'native-base'
+import { Text, Avatar, Box } from 'native-base'
   import {
     collection,
     where,
@@ -15,7 +15,7 @@ import { Text } from 'native-base'
 import { UserAuth } from "../context/context";
 
 import { Entypo } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 const MessageMenu = ({navigation, route}) => {
   const {chatRoomKeys , fpostAuthorID, receiverIDs,
     receiverNames, receiverImgs, fname, fprofilePic} = route.params
@@ -174,10 +174,43 @@ const inputProps = (props) =>{
 const chatEmpty = () =>{
   return (
     <View style={{ flex:1, justifyContent:'center',
-    alignItems:'center', transform: [{  rotateX:'180deg' }] }}>
+    alignItems:'center', transform: [{  rotateZ:'180deg' }],  }}>
      <Entypo name='new-message' size={72} color='#ccc'/>
-     <Text color='text.400'>Start new Chat  {receiverImgs}</Text>
-     <Text>  {fprofilePic}  </Text>
+     <Text color='text.400'>Start new Chat </Text>
+
+
+<View style={{  justifyContent:'center',
+    alignItems:'center', flexDirection:'row', marginTop:30 }}>
+     {(!receiverImgs) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="12" mr='4' rounded='full'>
+                            <Ionicons name="person" size={32} color="#fff" />
+                            </Box>
+ 
+) : (
+ 
+ 
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' mr='4' source={{ uri: fprofilePic }}>
+  Avatar
+</Avatar>
+
+)}
+
+{(!fprofilePic) ? (
+          <Box bg="gray.300" alignItems="center" justifyContent='center' size="12" mr='4' rounded='full'>
+                            <Ionicons name="person" size={32} color="#fff" />
+                            </Box>
+ 
+) : (
+ 
+ 
+  <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' mr='4' source={{ uri: fprofilePic }}>
+  Avatar
+</Avatar>
+
+)}
+ </View>
+
+     
     </View>
   )
 }

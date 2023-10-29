@@ -37,9 +37,9 @@ const Search = ({navigation, route}) => {
                 InputRightElement={<Ionicons name='search' color='#36454F' size={32}/>} 
                 
                 onChangeText={(text) => searchFilterFunction(text)}
-                 onClear={(text) => searchFilterFunction('')}
+                onClear={(text) => searchFilterFunction('')}
               
-                 value={search}
+                
                 />
             ),
           });  
@@ -248,23 +248,7 @@ const Search = ({navigation, route}) => {
            );
          };
        
-        //  const ItemSeparatorView = () => {
-        //    return (
-        //      // Flat List Item Separator
-        //      <View
-        //        style={{
-        //          height: 0.5,
-        //          width: '100%',
-        //          backgroundColor: '#C8C8C8',
-        //        }}
-        //      />
-        //    );
-        //  };
        
-        //  const getItem = (item) => {
-        //    // Function for click on an item
-        //    alert('Id : ' + item.id + ' Title : ' + item.title);
-        //  };
        
   return (
     <View>
