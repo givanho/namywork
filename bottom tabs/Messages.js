@@ -163,12 +163,7 @@ const Messages = ({ navigation }) => {
         
           mt={5}  >
           <Box   >
-        {/* <Avatar bg="gray.300" alignSelf="center" justifyContent='center' size="12" alt='profile pic' 
-         mr='4'  source={ userID === item.user._id ? { uri: item.user.receiverImg }: { uri: item.user.avatar}}
-            >
-          Avatar
-
-        </Avatar> */}
+        
         {(!item.user.receiverImg || !item.user.avatar) ? (
           <Box bg="gray.300" alignItems="center" justifyContent='center' size="12" mr='4' rounded='full'>
                             <Ionicons name="person" size={32} color="#fff" />
