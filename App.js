@@ -85,7 +85,7 @@ export default function App({navigation}) {
 
   const checkIfAlreadyOnboarded = async ()=>{
     let onboarded = await getItem('onboarded');
-    if(onboarded==1){
+    if(onboarded==2){
       // hide onboarding
       setShowOnboarding(false);
     }else{
@@ -117,11 +117,11 @@ export default function App({navigation}) {
     <NavigationContainer >
 <AuthContextProvider>
        <NativeBaseProvider  >
-       <StatusBar style='light' hidden={true} />
+       <StatusBar style='light' hidden={false} />
        <Nav.Navigator initialRouteName="OnBoard" options={{
         headerShown: false,
-        statusBarTranslucent:true,
-        statusBarHidden:true
+        statusBarTranslucent:false,
+        statusBarHidden:false
 
        }}>
         <Nav.Screen name='OnBoard' component ={OnBoard}
@@ -155,6 +155,8 @@ export default function App({navigation}) {
             shadowOpacity: 1,
            
           },
+        statusBarColor:'#fff',
+
           headerShadowVisible:true,
           headerStatusBarHeight:10,
           cardStyleInterpolator: forSlide ,
@@ -178,6 +180,8 @@ export default function App({navigation}) {
           },
           headerShadowVisible:true,
           headerStatusBarHeight:10,
+        statusBarColor:'#fff',
+
           cardStyleInterpolator: forSlide ,
        }}/> 
 
@@ -200,6 +204,7 @@ export default function App({navigation}) {
           },
           headerShadowVisible:true,
           headerStatusBarHeight:10,
+        statusBarColor:'#fff',
         
         cardStyleInterpolator: forSlide ,
      }}/>
@@ -211,14 +216,16 @@ export default function App({navigation}) {
             headerTitleAlign:'center',
             // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
           headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+          statusBarColor:'#fff',
 
             headerShown:'true',
             headerStatusBarHeight:10,
             headerStyle:{
-              borderWidth:StyleSheet.hairlineWidth,
+              borderBottomWidth:StyleSheet.hairlineWidth,
               borderColor:'#71797E',
               elevation: 1,
               shadowOpacity: 1,
+              borderTopWidth:0,
               },
      }}/>
       
@@ -231,12 +238,14 @@ export default function App({navigation}) {
             headerTitleAlign:'center',
             // headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
           headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+          statusBarColor:'#fff',
 
             headerStyle:{
             borderWidth:StyleSheet.hairlineWidth,
             borderColor:'#71797E',
             elevation: 1,
             shadowOpacity: 1,
+            borderTopWidth:0,
             },
             headerShadowVisible:true,
             
@@ -257,6 +266,8 @@ export default function App({navigation}) {
         headerTitle:'',
           headerTintColor:'#36454F',
             headerTitleAlign:'left',
+        statusBarColor:'#fff',
+
             headerTitleStyle:{marginRight:-20},
             headerShown:'true',
             headerStatusBarHeight:10,
@@ -265,6 +276,7 @@ export default function App({navigation}) {
               borderColor:'#71797E',
               elevation: 1,
               shadowOpacity: 1,
+              borderTopWidth:0,
               },
      }}/>
   </Nav.Navigator>
@@ -302,6 +314,7 @@ else{
    headerShown:true,
    statusBarTranslucent:true,
    statusBarHidden:true,
+   statusBarColor:'#fff',
    
    headerTitle:'Sign In',
  headerTintColor:'#36454F',
@@ -312,7 +325,7 @@ else{
    headerStyle:{
      borderWidth:StyleSheet.hairlineWidth,
      borderColor:'#71797E',
- 
+     borderTopWidth:0,
      elevation: 15,
      shadowOpacity: 1,
     
@@ -330,11 +343,12 @@ else{
    headerTitleAlign:'center',
   //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
   headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+  statusBarColor:'#fff',
 
    headerStyle:{
      borderWidth:StyleSheet.hairlineWidth,
      borderColor:'#71797E',
- 
+     borderTopWidth:0,
      elevation: 15,
      shadowOpacity: 1,
     
@@ -351,12 +365,13 @@ options={{
    headerTitleAlign:'center',
   //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
   headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+  statusBarColor:'#fff',
 
    headerShown:'true',
    headerStyle:{
      borderWidth:StyleSheet.hairlineWidth,
      borderColor:'#71797E',
- 
+     borderTopWidth:0,
      elevation: 15,
      shadowOpacity: 1,
     
@@ -374,6 +389,7 @@ options={{
      headerTitleAlign:'center',
     //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold',color:'#36454F'},
     headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+    statusBarColor:'#fff',
 
      headerShown:'true',
      headerStatusBarHeight:10,
@@ -382,6 +398,7 @@ options={{
        borderColor:'#71797E',
        elevation: 1,
        shadowOpacity: 1,
+       borderTopWidth:0,
        },
 }}/>
 
@@ -396,12 +413,14 @@ options={{
      headerTitleAlign:'center',
     //  headerTitleStyle:{fontSize:19, fontFamily:'Poppins-Bold', color:'#36454F'},
     headerTitleStyle:{fontSize:19, fontWeight:'700',color:'#36454F'},
+    statusBarColor:'#fff',
 
      headerStyle:{
      borderWidth:StyleSheet.hairlineWidth,
      borderColor:'#71797E',
      elevation: 1,
      shadowOpacity: 1,
+     borderTopWidth:0,
      },
      headerShadowVisible:true,
      
@@ -425,11 +444,14 @@ options={{
      headerTitleStyle:{marginRight:-20},
      headerShown:'true',
      headerStatusBarHeight:10,
+     statusBarColor:'#fff',
+
      headerStyle:{
        borderWidth:StyleSheet.hairlineWidth,
        borderColor:'#71797E',
        elevation: 1,
        shadowOpacity: 1,
+       borderTopWidth:0,
        },
 }}/>
 <Nav.Screen name='OnBoard' component ={OnBoard}
