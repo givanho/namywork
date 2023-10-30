@@ -85,16 +85,21 @@ export default function App({navigation}) {
 
   const checkIfAlreadyOnboarded = async ()=>{
     let onboarded = await getItem('onboarded');
-    if(onboarded==2){
+    if(onboarded==1){
       // hide onboarding
       setShowOnboarding(false);
+      console.log('if '+showOnboarding)
+
     }else{
       // show onboarding
       setShowOnboarding(true);
+      console.log('else '+ showOnboarding)
     }
   }
 
-
+if(showOnboarding ==null){
+  return null;
+}
 
   // const onLayoutRootView = useCallback(async () => {
   //   if (fontsLoaded) {
