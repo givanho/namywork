@@ -12,7 +12,7 @@ const OnBoard = () => {
 
     const handleDone = async()=>{
         navigation.navigate('BottomTabs');
-        setItem('onboarded', '2');
+        setItem('onboarded', '1');
     }
     const doneButton = ({...props})=>{
         return (
