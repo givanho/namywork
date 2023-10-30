@@ -44,7 +44,7 @@ Before you begin, ensure you have the following software installed on your machi
 1. Clone the repository (or download the source code):
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/givanho/namywork.git
    ```
 
 2. Change your working directory to the project folder:
